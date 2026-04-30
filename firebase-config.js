@@ -114,8 +114,16 @@ function returnToListAfterSave() {
   if (!form || !listButton) return;
 
   form.addEventListener("submit", () => {
-    window.setTimeout(() => {
-      listButton.click();
-    }, 900);
+    const startedAt = Date.now();
+    const timer = window.setInterval(() => {
+      if (document.querySelector("#detailView.active")) {
+        listButton.click();
+        window.clearInterval(timer);
+      }
+
+      if (Date.now() - startedAt > 6000) {
+        window.clearInterval(timer);
+      }
+    }, 120);
   });
 }
