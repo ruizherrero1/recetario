@@ -15,11 +15,16 @@
   box-sizing: border-box;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   margin: 0;
   min-height: 100vh;
   background: linear-gradient(180deg, #f6c99e 0, #fff8ef 210px);
   color: var(--ink);
+  overflow-x: hidden;
 }
 
 button,
@@ -56,6 +61,7 @@ button {
 
 .app-logo {
   display: block;
+  max-width: 100%;
   object-fit: contain;
 }
 
@@ -72,6 +78,10 @@ button {
   font-size: clamp(2rem, 11vw, 3.6rem);
   line-height: 0.95;
   letter-spacing: 0;
+}
+
+.topbar h1 {
+  font-size: clamp(1.8rem, 9vw, 3rem);
 }
 
 .eyebrow {
@@ -126,6 +136,7 @@ button {
 }
 
 main {
+  width: 100%;
   max-width: 980px;
   margin: 0 auto;
 }
@@ -169,6 +180,7 @@ main {
 input,
 textarea,
 select {
+  min-width: 0;
   width: 100%;
   border: 1px solid var(--line);
   border-radius: 6px;
@@ -197,7 +209,7 @@ select:focus {
 
 .recipes-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
   gap: 12px;
 }
 
@@ -244,7 +256,7 @@ select:focus {
 
 .mode-tabs {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
   margin-bottom: 14px;
 }
@@ -269,6 +281,7 @@ select:focus {
 
 .recipe-form,
 .recipe-detail {
+  width: 100%;
   border: 1px solid rgba(200, 94, 49, 0.15);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.9);
@@ -317,6 +330,12 @@ select:focus {
   gap: 10px;
 }
 
+.form-actions > button,
+.detail-actions > button,
+.voice-actions > button {
+  flex: 1 1 150px;
+}
+
 .primary-button,
 .secondary-button,
 .ghost-button {
@@ -351,6 +370,7 @@ select:focus {
 }
 
 .recipe-detail h2 {
+  overflow-wrap: anywhere;
   margin: 0 0 12px;
   color: var(--brand);
   font-family: Georgia, "Times New Roman", serif;
@@ -410,6 +430,7 @@ select:focus {
 .notes-text {
   white-space: pre-wrap;
   line-height: 1.65;
+  overflow-wrap: anywhere;
 }
 
 .recipe-source-link {
@@ -436,6 +457,7 @@ select:focus {
 }
 
 dialog {
+  width: min(420px, calc(100vw - 28px));
   border: 0;
   border-radius: 8px;
   padding: 0;
@@ -476,6 +498,88 @@ dialog::backdrop {
   margin: 8px 0 0;
   color: var(--muted);
   line-height: 1.45;
+}
+
+@media (max-width: 560px) {
+  .lock-screen {
+    align-items: start;
+    padding: max(18px, env(safe-area-inset-top)) 14px 18px;
+  }
+
+  .lock-panel,
+  .settings-panel {
+    padding: 18px;
+  }
+
+  .lock-logo {
+    width: min(210px, 72vw);
+  }
+
+  .app-shell {
+    padding: max(12px, env(safe-area-inset-top)) 12px 94px;
+  }
+
+  .topbar {
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .brand-row {
+    gap: 9px;
+  }
+
+  .brand-row > div {
+    min-width: 0;
+  }
+
+  .topbar-logo {
+    width: 58px;
+    height: 48px;
+  }
+
+  .topbar h1 {
+    font-size: clamp(1.55rem, 8.5vw, 2.2rem);
+    overflow-wrap: anywhere;
+  }
+
+  .eyebrow {
+    font-size: 0.68rem;
+  }
+
+  .tools-row,
+  .recipe-form {
+    gap: 10px;
+  }
+
+  input,
+  textarea,
+  select {
+    padding: 11px 12px;
+    font-size: 1rem;
+  }
+
+  .recipe-card {
+    padding: 13px;
+  }
+
+  .recipe-detail {
+    padding: 18px;
+  }
+
+  .recipe-detail h2 {
+    font-size: clamp(1.85rem, 10vw, 2.8rem);
+  }
+
+  .detail-section {
+    margin-top: 20px;
+  }
+
+  .primary-button,
+  .secondary-button,
+  .ghost-button {
+    width: 100%;
+  }
 }
 
 @media print {
