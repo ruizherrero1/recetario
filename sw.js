@@ -1,4 +1,4 @@
-const CACHE_NAME = "recetario-v5";
+const CACHE_NAME = "recetario-v6";
 const ASSETS = [
   "./",
   "./index.html",
@@ -6,7 +6,6 @@ const ASSETS = [
   "./app.js",
   "./import-recipe.js",
   "./apple-touch-icon.png",
-  "./icon.svg",
   "./manifest.webmanifest"
 ];
 
