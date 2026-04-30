@@ -54,6 +54,16 @@ button {
   padding: 24px;
 }
 
+.app-logo {
+  display: block;
+  object-fit: contain;
+}
+
+.lock-logo {
+  width: min(250px, 78vw);
+  margin: 0 auto 10px;
+}
+
 .lock-panel h1,
 .topbar h1 {
   margin: 0;
@@ -93,6 +103,19 @@ button {
   gap: 16px;
 }
 
+.brand-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.topbar-logo {
+  width: 74px;
+  height: 58px;
+  flex: 0 0 auto;
+}
+
 .icon-button {
   width: 44px;
   height: 44px;
@@ -124,17 +147,19 @@ main {
 
 @media (min-width: 720px) {
   .tools-row {
-    grid-template-columns: 1fr 240px;
+    grid-template-columns: 1fr 210px 180px;
   }
 }
 
 .search-box,
+.sort-box,
 .field {
   display: grid;
   gap: 7px;
 }
 
 .search-box span,
+.sort-box span,
 .field span {
   color: var(--brand-dark);
   font-size: 0.82rem;
@@ -219,7 +244,7 @@ select:focus {
 
 .mode-tabs {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 6px;
   margin-bottom: 14px;
 }
@@ -231,6 +256,7 @@ select:focus {
   background: rgba(255, 255, 255, 0.64);
   color: var(--muted);
   padding: 10px 8px;
+  font-size: 0.9rem;
   font-weight: 700;
 }
 
@@ -271,6 +297,10 @@ select:focus {
 @media (min-width: 760px) {
   .form-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .link-field {
+    grid-column: 1 / -1;
   }
 }
 
@@ -382,6 +412,12 @@ select:focus {
   line-height: 1.65;
 }
 
+.recipe-source-link {
+  color: var(--brand-dark);
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
 .bottom-nav {
   position: fixed;
   left: 50%;
@@ -421,6 +457,25 @@ dialog::backdrop {
 
 .file-button input {
   display: none;
+}
+
+.install-help {
+  border: 1px solid rgba(200, 94, 49, 0.18);
+  border-radius: 6px;
+  background: #fff8ef;
+  padding: 10px 12px;
+}
+
+.install-help summary {
+  color: var(--brand-dark);
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.install-help p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.45;
 }
 
 @media print {
