@@ -107,6 +107,8 @@
     $("#stepsInput").value = recipe.steps;
     $("#notesInput").value = recipe.notes;
     $("#recipeUrl").value = recipe.sourceUrl;
+    const sourceUrlInput = $("#sourceUrlInput");
+    if (sourceUrlInput) sourceUrlInput.value = recipe.sourceUrl;
     $("#singleRecipeText").value = "";
 
     document.querySelector('[data-mode="manual"]')?.click();
