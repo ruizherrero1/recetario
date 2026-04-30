@@ -9,7 +9,8 @@ const state = {
   firebaseReady: false,
   db: null,
   auth: null,
-  firebase: null
+  firebase: null,
+  sortMode: localStorage.getItem("recetario:sortMode") || "updatedDesc"
 };
 
 const localKey = () => `recetario:${state.cookbookId}:recipes`;
@@ -31,6 +32,12 @@ $("#exportButton").addEventListener("click", exportBackup);
 $("#importBackupInput").addEventListener("change", importBackup);
 $("#searchInput").addEventListener("input", renderList);
 $("#categoryFilter").addEventListener("change", renderList);
+if ($("#sortSelect")) {
+  $("#sortSelect").value = state.sortMode;
+  $("#sortSelect").addEventListener("change", updateSortMode);
+}
+$("#recipeUrl").addEventListener("input", syncSourceUrlFromLinkMode);
+$("#sourceUrlInput")?.addEventListener("input", syncRecipeUrlFromSourceField);
 
 $$(".nav-button").forEach((button) => {
   button.addEventListener("click", () => showView(button.dataset.view));
@@ -52,12 +59,17 @@ $("#parseVoiceButton").addEventListener("click", () => fillFormFromText($("#voic
 window.addEventListener("beforeprint", () => showView("detailView", false));
 
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("./sw.js").catch(() => {});
+  navigator.serviceWorker.register("./sw.js").then((registration) => {
+    if (registration.waiting) {
+      registration.waiting.postMessage({ type: "SKIP_WAITING" });
+    }
+  }).catch(() => {});
 }
 
 const savedCookbook = localStorage.getItem("recetario:lastCookbookCode");
 if (savedCookbook) {
   $("#cookbookCode").value = savedCookbook;
+  unlock();
 }
 
 async function unlock() {
@@ -171,6 +183,7 @@ async function saveRecipeFromForm(event) {
   event.preventDefault();
   const editingId = $("#editingId").value;
   const previous = state.recipes.find((item) => item.id === editingId);
+  const sourceUrl = normalizeUrlForStorage($("#sourceUrlInput")?.value || $("#recipeUrl").value);
   const recipe = {
     id: editingId || crypto.randomUUID().replace(/-/g, "").slice(0, 20),
     title: $("#titleInput").value.trim(),
@@ -180,13 +193,19 @@ async function saveRecipeFromForm(event) {
     ingredients: splitLines($("#ingredientsInput").value),
     steps: $("#stepsInput").value.trim(),
     notes: $("#notesInput").value.trim(),
-    sourceUrl: previous?.sourceUrl || $("#recipeUrl").value.trim(),
+    sourceUrl,
     createdAt: previous?.createdAt || new Date().toISOString()
   };
 
+  const duplicate = findDuplicateRecipe(recipe);
+  if (duplicate && !confirm(`Ya existe una receta parecida: "${duplicate.title}". Guardarla igualmente?`)) {
+    return;
+  }
+
   await saveRecipe(recipe);
   resetForm();
-  openRecipe(recipe.id);
+  state.activeRecipeId = "";
+  showView("listView");
 }
 
 function renderAll() {
@@ -214,14 +233,15 @@ function renderList() {
       ...(recipe.tags || []),
       ...(recipe.ingredients || []),
       recipe.steps,
-      recipe.notes
+      recipe.notes,
+      recipe.sourceUrl
     ].join(" "));
     const matchesQuery = !query || haystack.includes(query);
     const matchesCategory = !category || (recipe.categories || []).includes(category);
     return matchesQuery && matchesCategory;
   });
 
-  recipesList.innerHTML = filtered.map(recipeCard).join("");
+  recipesList.innerHTML = sortRecipes(filtered).map(recipeCard).join("");
   emptyState.classList.toggle("hidden", state.recipes.length > 0);
 
   recipesList.querySelectorAll(".recipe-card").forEach((card) => {
@@ -262,6 +282,11 @@ function renderDetail(recipeId) {
       <span class="detail-label">Tiempo</span>
       <div>${escapeHtml(recipe.time || "Sin tiempo indicado")}</div>
     </div>
+    ${recipe.sourceUrl ? `
+      <div class="detail-line">
+        <span class="detail-label">Link</span>
+        <div><a class="recipe-source-link" href="${escapeAttr(normalizeUrlForOpen(recipe.sourceUrl))}" target="_blank" rel="noopener noreferrer">${escapeHtml(shortUrl(recipe.sourceUrl))}</a></div>
+      </div>` : ""}
     ${(recipe.tags || []).length ? `
       <div class="detail-line">
         <span class="detail-label">Etiquetas</span>
@@ -304,6 +329,7 @@ function editRecipe(recipeId) {
   $("#stepsInput").value = recipe.steps || "";
   $("#notesInput").value = recipe.notes || "";
   $("#recipeUrl").value = recipe.sourceUrl || "";
+  if ($("#sourceUrlInput")) $("#sourceUrlInput").value = recipe.sourceUrl || "";
   $("#cancelEditButton").classList.remove("hidden");
   showView("addView");
 }
@@ -325,6 +351,40 @@ function showView(viewId, updateNav = true) {
 function setMode(mode) {
   $$(".mode-tab").forEach((button) => button.classList.toggle("active", button.dataset.mode === mode));
   $$(".mode-panel").forEach((panel) => panel.classList.toggle("active", panel.id === `${mode}Mode`));
+}
+
+function updateSortMode(event) {
+  state.sortMode = event.target.value;
+  localStorage.setItem("recetario:sortMode", state.sortMode);
+  renderList();
+}
+
+function syncSourceUrlFromLinkMode() {
+  if ($("#sourceUrlInput")) $("#sourceUrlInput").value = $("#recipeUrl").value.trim();
+}
+
+function syncRecipeUrlFromSourceField() {
+  $("#recipeUrl").value = $("#sourceUrlInput")?.value.trim() || "";
+}
+
+function sortRecipes(recipes) {
+  return [...recipes].sort((a, b) => {
+    if (state.sortMode === "titleAsc") {
+      return localeSort(a.title || "", b.title || "");
+    }
+
+    if (state.sortMode === "categoryAsc") {
+      return localeSort((a.categories || [])[0] || "", (b.categories || [])[0] || "")
+        || localeSort(a.title || "", b.title || "");
+    }
+
+    if (state.sortMode === "createdDesc") {
+      return dateValue(b.createdAt) - dateValue(a.createdAt) || localeSort(a.title || "", b.title || "");
+    }
+
+    return dateValue(b.updatedAt || b.createdAt) - dateValue(a.updatedAt || a.createdAt)
+      || localeSort(a.title || "", b.title || "");
+  });
 }
 
 async function runOcr() {
@@ -353,12 +413,14 @@ async function runOcr() {
 }
 
 async function importFromLink() {
-  const url = $("#recipeUrl").value.trim();
+  const url = normalizeUrlForOpen($("#recipeUrl").value || $("#sourceUrlInput").value);
   if (!url) {
     $("#linkStatus").textContent = "Pega un link primero.";
     return;
   }
 
+  $("#recipeUrl").value = url;
+  if ($("#sourceUrlInput")) $("#sourceUrlInput").value = url;
   $("#linkStatus").textContent = "Intentando leer la web...";
   try {
     const response = await fetch(url);
@@ -455,7 +517,11 @@ function fillForm(recipe) {
   if (recipe.ingredients?.length) $("#ingredientsInput").value = recipe.ingredients.join("\n");
   if (recipe.steps) $("#stepsInput").value = recipe.steps;
   if (recipe.notes) $("#notesInput").value = recipe.notes;
-  if (recipe.sourceUrl) $("#recipeUrl").value = recipe.sourceUrl;
+  if (recipe.sourceUrl) {
+    const sourceUrl = normalizeUrlForStorage(recipe.sourceUrl);
+    $("#recipeUrl").value = sourceUrl;
+    if ($("#sourceUrlInput")) $("#sourceUrlInput").value = sourceUrl;
+  }
   setMode("manual");
 }
 
@@ -463,7 +529,7 @@ function parseRecipeText(text) {
   const cleanLines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
   const lowerLines = cleanLines.map(normalize);
   const ingredientsStart = findSection(lowerLines, ["ingredientes", "ingredients"]);
-  const stepsStart = findSection(lowerLines, ["preparacion", "preparación", "elaboracion", "elaboración", "receta", "pasos", "instructions"]);
+  const stepsStart = findSection(lowerLines, ["preparacion", "elaboracion", "receta", "pasos", "instructions"]);
   const notesStart = findSection(lowerLines, ["notas", "notes"]);
 
   const title = cleanLines.find((line, index) => index < 5 && line.length > 3 && !line.includes(":")) || cleanLines[0] || "";
@@ -498,11 +564,11 @@ function findSection(lines, names) {
 }
 
 function looksLikeIngredient(line) {
-  return /^[-*•]?\s*(\d+|[½¼¾]|una?|dos|tres|cuatro|cinco|sal|aceite|agua|harina|azucar|azúcar)/i.test(line);
+  return /^[-*\u2022]?\s*(\d+|[\u00bd\u00bc\u00be]|una?|dos|tres|cuatro|cinco|sal|aceite|agua|harina|azucar)/i.test(line);
 }
 
 function cleanBullet(line) {
-  return line.replace(/^[-*•\d.)\s]+/, "").trim();
+  return line.replace(/^[-*\u2022\d.)\s]+/, "").trim();
 }
 
 function splitList(value) {
@@ -523,6 +589,7 @@ function openSettings() {
   $("#settingsSyncText").textContent = state.firebaseReady
     ? "Firebase esta conectado. Las recetas se sincronizan usando el codigo compartido."
     : "Firebase no esta configurado. Ahora mismo las recetas solo viven en este navegador.";
+  renderBackupStatus();
   $("#settingsDialog").showModal();
 }
 
@@ -534,6 +601,8 @@ function exportBackup() {
   link.download = `recetario-${new Date().toISOString().slice(0, 10)}.json`;
   link.click();
   URL.revokeObjectURL(url);
+  localStorage.setItem("recetario:lastBackupAt", new Date().toISOString());
+  renderBackupStatus();
 }
 
 async function importBackup(event) {
@@ -541,11 +610,109 @@ async function importBackup(event) {
   if (!file) return;
   const recipes = JSON.parse(await file.text());
   if (!Array.isArray(recipes)) return;
+  let imported = 0;
+  let skipped = 0;
   for (const recipe of recipes) {
-    await saveRecipe({ ...recipe, id: recipe.id || crypto.randomUUID().replace(/-/g, "").slice(0, 20) });
+    const normalized = normalizeImportedRecipe(recipe);
+    if (findDuplicateRecipe(normalized)) {
+      skipped += 1;
+      continue;
+    }
+    await saveRecipe(normalized);
+    imported += 1;
   }
   event.target.value = "";
   renderAll();
+  alert(`Importadas: ${imported}. Omitidas por posible duplicado: ${skipped}.`);
+}
+
+function renderBackupStatus() {
+  const status = $("#backupStatus");
+  if (!status) return;
+
+  const lastBackup = localStorage.getItem("recetario:lastBackupAt");
+  status.textContent = lastBackup
+    ? `Ultima copia exportada: ${formatDateTime(lastBackup)}.`
+    : "Todavia no se ha exportado una copia en este navegador.";
+}
+
+function normalizeImportedRecipe(recipe) {
+  const sourceUrl = normalizeUrlForStorage(recipe.sourceUrl || recipe.link || recipe.url);
+  return {
+    id: recipe.id || crypto.randomUUID().replace(/-/g, "").slice(0, 20),
+    title: String(recipe.title || recipe.nombre || recipe.name || "").trim(),
+    categories: normalizeList(recipe.categories || recipe.categorias || recipe.category || recipe.categoria),
+    tags: normalizeList(recipe.tags || recipe.etiquetas),
+    time: String(recipe.time || recipe.tiempo || "").trim(),
+    ingredients: normalizeList(recipe.ingredients || recipe.ingredientes),
+    steps: Array.isArray(recipe.steps)
+      ? normalizeList(recipe.steps).join("\n")
+      : String(recipe.steps || recipe.preparacion || recipe["preparaci\u00f3n"] || recipe.receta || "").trim(),
+    notes: String(recipe.notes || recipe.notas || "").trim(),
+    sourceUrl,
+    createdAt: recipe.createdAt || new Date().toISOString(),
+    updatedAt: recipe.updatedAt || new Date().toISOString()
+  };
+}
+
+function normalizeList(value) {
+  if (Array.isArray(value)) return value.map((item) => String(item).trim()).filter(Boolean);
+  return splitList(value);
+}
+
+function findDuplicateRecipe(recipe) {
+  const title = normalize(recipe.title);
+  const sourceUrl = normalizeUrlForCompare(recipe.sourceUrl);
+  return state.recipes.find((item) => {
+    if (item.id === recipe.id) return false;
+    const sameLink = sourceUrl && normalizeUrlForCompare(item.sourceUrl || item.link) === sourceUrl;
+    const sameTitle = title && normalize(item.title) === title;
+    return sameLink || sameTitle;
+  });
+}
+
+function normalizeUrlForStorage(value) {
+  const url = normalizeUrlForOpen(value);
+  if (!url) return "";
+  try {
+    return new URL(url).href;
+  } catch {
+    return String(value || "").trim();
+  }
+}
+
+function normalizeUrlForOpen(value) {
+  const url = String(value || "").trim();
+  if (!url) return "";
+  return /^https?:\/\//i.test(url) ? url : `https://${url}`;
+}
+
+function normalizeUrlForCompare(value) {
+  const url = normalizeUrlForStorage(value).replace(/\/$/, "");
+  return normalize(url);
+}
+
+function shortUrl(value) {
+  try {
+    const url = new URL(normalizeUrlForOpen(value));
+    return url.hostname.replace(/^www\./, "") + url.pathname.replace(/\/$/, "");
+  } catch {
+    return value || "Abrir link";
+  }
+}
+
+function dateValue(value) {
+  const time = Date.parse(value || "");
+  return Number.isNaN(time) ? 0 : time;
+}
+
+function formatDateTime(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "fecha desconocida";
+  return new Intl.DateTimeFormat("es", {
+    dateStyle: "medium",
+    timeStyle: "short"
+  }).format(date);
 }
 
 function changeCode() {
