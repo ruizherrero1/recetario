@@ -5,19 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#f6c99e">
     <title>Recetario</title>
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="stylesheet" href="styles.css">
     <script src="firebase-config.js"></script>
+    <script src="import-recipe.js" defer></script>
   </head>
   <body>
     <div id="lockScreen" class="lock-screen">
       <section class="lock-panel">
         <p class="eyebrow">Recetario compartido</p>
+        <img class="app-logo lock-logo" src="apple-touch-icon.png" alt="Recetas de Laura">
         <h1>Mis recetas</h1>
         <p class="muted">Introduce el codigo del recetario. Compartid el mismo codigo en los dos moviles para ver las mismas recetas.</p>
         <label class="field">
           <span>Codigo</span>
-          <input id="cookbookCode" type="password" autocomplete="off" placeholder="Ej. receta-casa-2026">
+          <input id="cookbookCode" type="text" autocomplete="off" placeholder="Ej. receta-casa-2026">
         </label>
         <button id="unlockButton" class="primary-button">Entrar</button>
         <p id="lockMessage" class="message"></p>
@@ -26,11 +30,14 @@
 
     <div id="appShell" class="app-shell hidden">
       <header class="topbar">
-        <div>
-          <p class="eyebrow">Recetario</p>
-          <h1>Mis recetas</h1>
+        <div class="brand-row">
+          <img class="app-logo topbar-logo" src="apple-touch-icon.png" alt="Recetas de Laura">
+          <div>
+            <p class="eyebrow">Recetario</p>
+            <h1>Mis recetas</h1>
+          </div>
         </div>
-        <button id="settingsButton" class="icon-button" title="Ajustes" aria-label="Ajustes">⚙</button>
+        <button id="settingsButton" class="icon-button" title="Ajustes" aria-label="Ajustes">&#9881;</button>
       </header>
 
       <main>
@@ -43,6 +50,15 @@
             <select id="categoryFilter" aria-label="Filtrar por categoria">
               <option value="">Todas</option>
             </select>
+            <label class="sort-box">
+              <span>Ordenar</span>
+              <select id="sortSelect" aria-label="Ordenar recetas">
+                <option value="updatedDesc">Ultimas editadas</option>
+                <option value="createdDesc">Nuevas primero</option>
+                <option value="titleAsc">Nombre A-Z</option>
+                <option value="categoryAsc">Categoria</option>
+              </select>
+            </label>
           </div>
           <div id="syncStatus" class="sync-status">Modo local</div>
           <div id="recipesList" class="recipes-list"></div>
@@ -55,6 +71,7 @@
         <section id="addView" class="view">
           <div class="mode-tabs" role="tablist" aria-label="Metodo de entrada">
             <button class="mode-tab active" data-mode="manual">Manual</button>
+            <button class="mode-tab" data-mode="import">Importar</button>
             <button class="mode-tab" data-mode="photo">Foto</button>
             <button class="mode-tab" data-mode="link">Link</button>
             <button class="mode-tab" data-mode="voice">Voz</button>
@@ -62,6 +79,19 @@
 
           <form id="recipeForm" class="recipe-form">
             <div id="manualMode" class="mode-panel active"></div>
+
+            <div id="importMode" class="mode-panel">
+              <label class="field">
+                <span>Archivo JSON de receta</span>
+                <input id="singleRecipeFile" type="file" accept="application/json,.json">
+              </label>
+              <label class="field">
+                <span>O pega aqui la receta generada por chat</span>
+                <textarea id="singleRecipeText" rows="9" placeholder='{"title":"Tortilla de patatas","categories":["Cena"],"time":"35 min","ingredients":["..."],"steps":"..."}'></textarea>
+              </label>
+              <button id="importSingleRecipeButton" type="button" class="secondary-button">Cargar en formulario</button>
+              <p id="singleRecipeImportStatus" class="message"></p>
+            </div>
 
             <div id="photoMode" class="mode-panel">
               <label class="field">
@@ -116,6 +146,10 @@
                 <span>Etiquetas</span>
                 <input id="tagsInput" name="tags" placeholder="rapida, horno, vegetariana">
               </label>
+              <label class="field link-field">
+                <span>Link</span>
+                <input id="sourceUrlInput" name="sourceUrl" type="url" placeholder="https://...">
+              </label>
             </div>
 
             <label class="field">
@@ -145,7 +179,7 @@
 
       <nav class="bottom-nav" aria-label="Navegacion principal">
         <button class="nav-button active" data-view="listView">Recetas</button>
-        <button class="nav-button" data-view="addView">Añadir</button>
+        <button class="nav-button" data-view="addView">A&ntilde;adir</button>
       </nav>
     </div>
 
@@ -153,11 +187,16 @@
       <form method="dialog" class="settings-panel">
         <h2>Ajustes</h2>
         <p id="settingsSyncText" class="muted"></p>
+        <p id="backupStatus" class="muted"></p>
         <button id="exportButton" type="button" class="secondary-button">Exportar copia JSON</button>
         <label class="secondary-button file-button">
           Importar copia JSON
           <input id="importBackupInput" type="file" accept="application/json">
         </label>
+        <details class="install-help">
+          <summary>Instalar en iPhone</summary>
+          <p>Abre la app en Safari, pulsa compartir y elige "A&ntilde;adir a pantalla de inicio". Si el icono no cambia, borra el acceso antiguo y vuelve a a&ntilde;adirlo.</p>
+        </details>
         <button id="changeCodeButton" type="button" class="ghost-button">Cambiar codigo</button>
         <button class="primary-button">Cerrar</button>
       </form>
