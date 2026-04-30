@@ -5,15 +5,18 @@ App movil para guardar recetas, organizarlas por categorias y etiquetas, sincron
 ## Que incluye
 
 - Entrada con codigo compartido, sin pantalla de login.
-- Listado de recetas con busqueda y filtro por categoria.
+- Listado de recetas con busqueda, filtro por categoria y ordenacion.
 - Una receta puede tener varias categorias.
+- Campo `Link` para guardar la web original y abrirla desde la receta.
 - Vista de receta en modo lectura.
 - Botones para editar, eliminar y generar PDF desde la vista de receta.
 - Alta manual de recetas.
 - Importacion de recetas generadas por chat mediante JSON.
 - Importacion desde foto de receta escrita mediante OCR en el navegador.
 - Importacion desde link cuando la web lo permite; si no, permite pegar el texto.
-- Dictado por voz si el navegador lo soporta.
+- Aviso de posible duplicado por nombre o link.
+- Exportacion e importacion de copia JSON.
+- Ayuda para instalar la app en iPhone desde ajustes.
 - Modo local sin configurar nada.
 - Sincronizacion con Firebase cuando se rellena `firebase-config.js`.
 
@@ -55,4 +58,6 @@ Usad un codigo largo y dificil de adivinar, por ejemplo una frase de 4 o 5 palab
 
 Para guardar un PDF: abre una receta, pulsa `PDF` y en el dialogo del movil elige guardar como PDF o imprimir.
 
-Para crear recetas desde cualquier chat sin API, usa `PLANTILLA_IMPORTAR_RECETAS.md`. El chat debe devolverte un JSON; despues entra en `Añadir > Importar`, pega el JSON, revisa los campos y guarda.
+Para crear recetas desde cualquier chat sin API, usa `PLANTILLA_IMPORTAR_RECETAS.md`. El chat debe devolverte un JSON; despues entra en `Anadir > Importar`, pega el JSON, revisa los campos y guarda.
+
+Para instalarlo en iPhone: abre la app en Safari, pulsa compartir y elige `Anadir a pantalla de inicio`. Si el icono no cambia, borra el acceso antiguo y vuelve a anadirlo.
