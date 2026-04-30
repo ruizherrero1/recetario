@@ -1,0 +1,15 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    match /cookbooks/{cookbookId}/recipes/{recipeId} {
+      allow read, create, update, delete: if signedIn()
+        && cookbookId.matches('^[a-f0-9]{64}$')
+        && recipeId.matches('^[A-Za-z0-9_-]{8,64}$');
+    }
+  }
+}

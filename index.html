@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#f6c99e">
+    <title>Recetario</title>
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="stylesheet" href="styles.css">
+    <script src="firebase-config.js"></script>
+  </head>
+  <body>
+    <div id="lockScreen" class="lock-screen">
+      <section class="lock-panel">
+        <p class="eyebrow">Recetario compartido</p>
+        <h1>Mis recetas</h1>
+        <p class="muted">Introduce el codigo del recetario. Compartid el mismo codigo en los dos moviles para ver las mismas recetas.</p>
+        <label class="field">
+          <span>Codigo</span>
+          <input id="cookbookCode" type="password" autocomplete="off" placeholder="Ej. receta-casa-2026">
+        </label>
+        <button id="unlockButton" class="primary-button">Entrar</button>
+        <p id="lockMessage" class="message"></p>
+      </section>
+    </div>
+
+    <div id="appShell" class="app-shell hidden">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Recetario</p>
+          <h1>Mis recetas</h1>
+        </div>
+        <button id="settingsButton" class="icon-button" title="Ajustes" aria-label="Ajustes">⚙</button>
+      </header>
+
+      <main>
+        <section id="listView" class="view active">
+          <div class="tools-row">
+            <label class="search-box">
+              <span>Buscar</span>
+              <input id="searchInput" type="search" placeholder="Nombre, ingrediente, etiqueta...">
+            </label>
+            <select id="categoryFilter" aria-label="Filtrar por categoria">
+              <option value="">Todas</option>
+            </select>
+          </div>
+          <div id="syncStatus" class="sync-status">Modo local</div>
+          <div id="recipesList" class="recipes-list"></div>
+          <div id="emptyState" class="empty-state hidden">
+            <h2>Aun no hay recetas</h2>
+            <p>Empieza creando una receta manual o importando una foto de una receta escrita.</p>
+          </div>
+        </section>
+
+        <section id="addView" class="view">
+          <div class="mode-tabs" role="tablist" aria-label="Metodo de entrada">
+            <button class="mode-tab active" data-mode="manual">Manual</button>
+            <button class="mode-tab" data-mode="photo">Foto</button>
+            <button class="mode-tab" data-mode="link">Link</button>
+            <button class="mode-tab" data-mode="voice">Voz</button>
+          </div>
+
+          <form id="recipeForm" class="recipe-form">
+            <div id="manualMode" class="mode-panel active"></div>
+
+            <div id="photoMode" class="mode-panel">
+              <label class="field">
+                <span>Foto de receta escrita</span>
+                <input id="photoInput" type="file" accept="image/*">
+              </label>
+              <button id="runOcrButton" type="button" class="secondary-button">Analizar foto</button>
+              <p id="ocrStatus" class="message"></p>
+            </div>
+
+            <div id="linkMode" class="mode-panel">
+              <label class="field">
+                <span>Link</span>
+                <input id="recipeUrl" type="url" placeholder="https://...">
+              </label>
+              <button id="importLinkButton" type="button" class="secondary-button">Intentar importar</button>
+              <label class="field">
+                <span>Si no funciona, pega aqui el texto de la receta</span>
+                <textarea id="pastedRecipeText" rows="7" placeholder="Ingredientes, preparacion, notas..."></textarea>
+              </label>
+              <button id="parseTextButton" type="button" class="secondary-button">Convertir texto en receta</button>
+              <p id="linkStatus" class="message"></p>
+            </div>
+
+            <div id="voiceMode" class="mode-panel">
+              <div class="voice-actions">
+                <button id="startVoiceButton" type="button" class="secondary-button">Dictar receta</button>
+                <button id="stopVoiceButton" type="button" class="secondary-button" disabled>Parar</button>
+              </div>
+              <label class="field">
+                <span>Texto detectado</span>
+                <textarea id="voiceText" rows="7"></textarea>
+              </label>
+              <button id="parseVoiceButton" type="button" class="secondary-button">Convertir voz en receta</button>
+              <p id="voiceStatus" class="message"></p>
+            </div>
+
+            <div class="form-grid">
+              <label class="field">
+                <span>Titulo</span>
+                <input id="titleInput" name="title" required>
+              </label>
+              <label class="field">
+                <span>Categorias</span>
+                <input id="categoriesInput" name="categories" placeholder="Cena, pasta, familiar">
+              </label>
+              <label class="field">
+                <span>Tiempo</span>
+                <input id="timeInput" name="time" placeholder="35 min">
+              </label>
+              <label class="field">
+                <span>Etiquetas</span>
+                <input id="tagsInput" name="tags" placeholder="rapida, horno, vegetariana">
+              </label>
+            </div>
+
+            <label class="field">
+              <span>Ingredientes</span>
+              <textarea id="ingredientsInput" name="ingredients" rows="7" required placeholder="Un ingrediente por linea"></textarea>
+            </label>
+            <label class="field">
+              <span>Receta</span>
+              <textarea id="stepsInput" name="steps" rows="8" required placeholder="Pasos de preparacion"></textarea>
+            </label>
+            <label class="field">
+              <span>Notas</span>
+              <textarea id="notesInput" name="notes" rows="4"></textarea>
+            </label>
+            <input id="editingId" type="hidden">
+            <div class="form-actions">
+              <button id="cancelEditButton" type="button" class="ghost-button hidden">Cancelar</button>
+              <button type="submit" class="primary-button">Guardar receta</button>
+            </div>
+          </form>
+        </section>
+
+        <section id="detailView" class="view">
+          <article id="recipeDetail" class="recipe-detail"></article>
+        </section>
+      </main>
+
+      <nav class="bottom-nav" aria-label="Navegacion principal">
+        <button class="nav-button active" data-view="listView">Recetas</button>
+        <button class="nav-button" data-view="addView">Añadir</button>
+      </nav>
+    </div>
+
+    <dialog id="settingsDialog">
+      <form method="dialog" class="settings-panel">
+        <h2>Ajustes</h2>
+        <p id="settingsSyncText" class="muted"></p>
+        <button id="exportButton" type="button" class="secondary-button">Exportar copia JSON</button>
+        <label class="secondary-button file-button">
+          Importar copia JSON
+          <input id="importBackupInput" type="file" accept="application/json">
+        </label>
+        <button id="changeCodeButton" type="button" class="ghost-button">Cambiar codigo</button>
+        <button class="primary-button">Cerrar</button>
+      </form>
+    </dialog>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
