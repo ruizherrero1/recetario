@@ -18,4 +18,9 @@ window.addEventListener("DOMContentLoaded", () => {
       unlockButton.click();
     }
   }, 0);
+
+  const importScript = document.createElement("script");
+  importScript.src = "import-recipe.js?v=2";
+  importScript.defer = true;
+  document.body.appendChild(importScript);
 });
