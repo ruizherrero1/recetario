@@ -1,7 +1,9 @@
 {
   "name": "Recetario",
   "short_name": "Recetario",
+  "id": "./",
   "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#fff8ef",
   "theme_color": "#f6c99e",
