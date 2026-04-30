@@ -9,6 +9,10 @@ window.RECETARIO_FIREBASE_CONFIG = {
 };
 
 window.addEventListener("DOMContentLoaded", () => {
+  installBranding();
+  makeCookbookCodeVisible();
+  returnToListAfterSave();
+
   window.setTimeout(() => {
     const savedCookbook = localStorage.getItem("recetario:lastCookbookCode");
     const unlockButton = document.querySelector("#unlockButton");
@@ -24,3 +28,94 @@ window.addEventListener("DOMContentLoaded", () => {
   importScript.defer = true;
   document.body.appendChild(importScript);
 });
+
+function installBranding() {
+  const iconHref = "apple-touch-icon.png";
+  const head = document.head;
+
+  if (!head.querySelector('link[rel="apple-touch-icon"]')) {
+    const appleIcon = document.createElement("link");
+    appleIcon.rel = "apple-touch-icon";
+    appleIcon.href = iconHref;
+    head.appendChild(appleIcon);
+  }
+
+  if (!head.querySelector('link[rel="icon"]')) {
+    const favicon = document.createElement("link");
+    favicon.rel = "icon";
+    favicon.type = "image/svg+xml";
+    favicon.href = "icon.svg";
+    head.appendChild(favicon);
+  }
+
+  if (!head.querySelector("#recetario-branding-style")) {
+    const style = document.createElement("style");
+    style.id = "recetario-branding-style";
+    style.textContent = `
+      .app-logo {
+        display: block;
+        object-fit: contain;
+      }
+
+      .lock-logo {
+        width: min(250px, 78vw);
+        margin: 0 auto 10px;
+      }
+
+      .brand-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+      }
+
+      .topbar-logo {
+        width: 74px;
+        height: 58px;
+        flex: 0 0 auto;
+      }
+    `;
+    head.appendChild(style);
+  }
+
+  const lockPanel = document.querySelector(".lock-panel");
+  if (lockPanel && !lockPanel.querySelector(".lock-logo")) {
+    const logo = document.createElement("img");
+    logo.className = "app-logo lock-logo";
+    logo.src = iconHref;
+    logo.alt = "Recetas de Laura";
+    lockPanel.querySelector("h1")?.before(logo);
+  }
+
+  const topbar = document.querySelector(".topbar");
+  const titleBlock = topbar?.querySelector(":scope > div:not(.brand-row)");
+  if (topbar && titleBlock && !topbar.querySelector(".topbar-logo")) {
+    const row = document.createElement("div");
+    row.className = "brand-row";
+
+    const logo = document.createElement("img");
+    logo.className = "app-logo topbar-logo";
+    logo.src = iconHref;
+    logo.alt = "Recetas de Laura";
+
+    titleBlock.before(row);
+    row.append(logo, titleBlock);
+  }
+}
+
+function makeCookbookCodeVisible() {
+  const input = document.querySelector("#cookbookCode");
+  if (input) input.type = "text";
+}
+
+function returnToListAfterSave() {
+  const form = document.querySelector("#recipeForm");
+  const listButton = document.querySelector('[data-view="listView"]');
+  if (!form || !listButton) return;
+
+  form.addEventListener("submit", () => {
+    window.setTimeout(() => {
+      listButton.click();
+    }, 900);
+  });
+}
