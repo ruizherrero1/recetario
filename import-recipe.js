@@ -21,11 +21,6 @@
 
     if (!tabs || !form || !manualPanel) return;
 
-    tabs.style.gridTemplateColumns = "repeat(5, minmax(0, 1fr))";
-    tabs.querySelectorAll(".mode-tab").forEach((tab) => {
-      tab.style.fontSize = "0.9rem";
-    });
-
     if (!document.querySelector('[data-mode="import"]')) {
       const importTab = document.createElement("button");
       importTab.type = "button";
