@@ -6,10 +6,61 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function validCookbookId(cookbookId) {
+      return cookbookId.matches('^[a-f0-9]{64}$');
+    }
+
+    function validRecipeId(recipeId) {
+      return recipeId.matches('^[A-Za-z0-9_-]{8,64}$');
+    }
+
+    function validRecipeData(recipeId) {
+      return request.resource.data.keys().hasOnly([
+          'id',
+          'title',
+          'categories',
+          'tags',
+          'time',
+          'ingredients',
+          'steps',
+          'notes',
+          'sourceUrl',
+          'createdAt',
+          'updatedAt'
+        ])
+        && request.resource.data.id == recipeId
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 140
+        && request.resource.data.categories is list
+        && request.resource.data.categories.size() <= 20
+        && request.resource.data.tags is list
+        && request.resource.data.tags.size() <= 30
+        && request.resource.data.time is string
+        && request.resource.data.time.size() <= 80
+        && request.resource.data.ingredients is list
+        && request.resource.data.ingredients.size() <= 120
+        && request.resource.data.steps is string
+        && request.resource.data.steps.size() <= 20000
+        && request.resource.data.notes is string
+        && request.resource.data.notes.size() <= 10000
+        && request.resource.data.sourceUrl is string
+        && request.resource.data.sourceUrl.size() <= 1200
+        && request.resource.data.createdAt is string
+        && request.resource.data.createdAt.size() <= 40
+        && request.resource.data.updatedAt is string
+        && request.resource.data.updatedAt.size() <= 40;
+    }
+
     match /cookbooks/{cookbookId}/recipes/{recipeId} {
-      allow read, create, update, delete: if signedIn()
-        && cookbookId.matches('^[a-f0-9]{64}$')
-        && recipeId.matches('^[A-Za-z0-9_-]{8,64}$');
+      allow read: if signedIn() && validCookbookId(cookbookId);
+      allow create, update: if signedIn()
+        && validCookbookId(cookbookId)
+        && validRecipeId(recipeId)
+        && validRecipeData(recipeId);
+      allow delete: if signedIn()
+        && validCookbookId(cookbookId)
+        && validRecipeId(recipeId);
     }
   }
 }
