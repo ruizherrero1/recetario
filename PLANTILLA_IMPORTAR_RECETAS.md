@@ -19,6 +19,8 @@ Reglas:
 - Usa etiquetas cortas para busqueda.
 - Manten el idioma en espanol.
 - No inventes ingredientes importantes que no aparezcan.
+- Si el contenido viene de una web, rellena `sourceUrl` con el link original.
+- Si el contenido no viene de una web, deja `sourceUrl` como "".
 
 Formato exacto:
 {
@@ -60,7 +62,7 @@ Contenido a convertir:
 ## Como importarlo en la app
 
 1. Abre la app.
-2. Entra en `Añadir`.
+2. Entra en `Anadir`.
 3. Pulsa `Importar`.
 4. Pega el JSON generado por el chat o sube un archivo `.json`.
 5. Pulsa `Cargar en formulario`.
@@ -76,4 +78,4 @@ Contenido a convertir:
 - `ingredients`: lista de ingredientes.
 - `steps`: preparacion como texto.
 - `notes`: notas opcionales.
-- `sourceUrl`: link original opcional.
+- `sourceUrl`: link original opcional. En la app se muestra como el campo `Link` y se puede abrir desde la vista de receta.
