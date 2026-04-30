@@ -10,6 +10,7 @@ App movil para guardar recetas, organizarlas por categorias y etiquetas, sincron
 - Vista de receta en modo lectura.
 - Botones para editar, eliminar y generar PDF desde la vista de receta.
 - Alta manual de recetas.
+- Importacion de recetas generadas por chat mediante JSON.
 - Importacion desde foto de receta escrita mediante OCR en el navegador.
 - Importacion desde link cuando la web lo permite; si no, permite pegar el texto.
 - Dictado por voz si el navegador lo soporta.
@@ -46,10 +47,12 @@ La importacion desde redes sociales y muchas webs puede fallar porque bloquean l
 8. Edita `firebase-config.js` y rellena `window.RECETARIO_FIREBASE_CONFIG`.
 9. Sube el cambio a GitHub.
 
-Firestore tiene cuota gratis suficiente para un recetario pequeño: 1 GiB de datos, 50.000 lecturas al dia, 20.000 escrituras al dia y 20.000 borrados al dia.
+Firestore tiene cuota gratis suficiente para un recetario pequeno: 1 GiB de datos, 50.000 lecturas al dia, 20.000 escrituras al dia y 20.000 borrados al dia.
 
 ## Uso recomendado
 
 Usad un codigo largo y dificil de adivinar, por ejemplo una frase de 4 o 5 palabras. Ese mismo codigo en los dos moviles abre el mismo recetario.
 
 Para guardar un PDF: abre una receta, pulsa `PDF` y en el dialogo del movil elige guardar como PDF o imprimir.
+
+Para crear recetas desde cualquier chat sin API, usa `PLANTILLA_IMPORTAR_RECETAS.md`. El chat debe devolverte un JSON; despues entra en `Añadir > Importar`, pega el JSON, revisa los campos y guarda.
