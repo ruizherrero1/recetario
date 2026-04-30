@@ -10,8 +10,10 @@ window.RECETARIO_FIREBASE_CONFIG = {
 
 window.addEventListener("DOMContentLoaded", () => {
   installBranding();
+  installRecipeLinkField();
   makeCookbookCodeVisible();
   returnToListAfterSave();
+  watchRecipeLinks();
 
   window.setTimeout(() => {
     const savedCookbook = localStorage.getItem("recetario:lastCookbookCode");
@@ -28,6 +30,8 @@ window.addEventListener("DOMContentLoaded", () => {
   importScript.defer = true;
   document.body.appendChild(importScript);
 });
+
+let currentRecipeId = "";
 
 function installBranding() {
   const iconHref = "apple-touch-icon.png";
@@ -74,6 +78,12 @@ function installBranding() {
         height: 58px;
         flex: 0 0 auto;
       }
+
+      .recipe-source-link {
+        color: #9d4423;
+        font-weight: 800;
+        overflow-wrap: anywhere;
+      }
     `;
     head.appendChild(style);
   }
@@ -106,6 +116,138 @@ function installBranding() {
 function makeCookbookCodeVisible() {
   const input = document.querySelector("#cookbookCode");
   if (input) input.type = "text";
+}
+
+function installRecipeLinkField() {
+  const formGrid = document.querySelector(".form-grid");
+  if (!formGrid || document.querySelector("#sourceUrlInput")) return;
+
+  const field = document.createElement("label");
+  field.className = "field";
+  field.innerHTML = `
+    <span>Link</span>
+    <input id="sourceUrlInput" name="sourceUrl" type="url" placeholder="https://...">
+  `;
+  formGrid.appendChild(field);
+
+  const sourceInput = document.querySelector("#sourceUrlInput");
+  const linkModeInput = document.querySelector("#recipeUrl");
+
+  sourceInput?.addEventListener("input", () => {
+    if (linkModeInput) linkModeInput.value = sourceInput.value.trim();
+  });
+
+  linkModeInput?.addEventListener("input", () => {
+    if (sourceInput) sourceInput.value = linkModeInput.value.trim();
+  });
+
+  document.addEventListener("click", (event) => {
+    const editButton = event.target.closest?.('[data-action="edit"]');
+    if (editButton) {
+      window.setTimeout(syncVisibleLinkField, 0);
+    }
+
+    const importButton = event.target.closest?.("#importLinkButton, #parseTextButton, #importSingleRecipeButton");
+    if (importButton) syncVisibleLinkFieldSoon();
+  });
+
+  document.querySelector("#recipeForm")?.addEventListener("submit", () => {
+    if (sourceInput && linkModeInput) {
+      linkModeInput.value = sourceInput.value.trim() || linkModeInput.value.trim();
+    }
+  }, true);
+}
+
+function syncVisibleLinkField() {
+  const sourceInput = document.querySelector("#sourceUrlInput");
+  const linkModeInput = document.querySelector("#recipeUrl");
+  if (sourceInput && linkModeInput) sourceInput.value = linkModeInput.value.trim();
+}
+
+function syncVisibleLinkFieldSoon() {
+  [0, 300, 900, 1800].forEach((delay) => {
+    window.setTimeout(syncVisibleLinkField, delay);
+  });
+}
+
+function watchRecipeLinks() {
+  document.addEventListener("click", (event) => {
+    const card = event.target.closest?.(".recipe-card");
+    if (card?.dataset?.id) currentRecipeId = card.dataset.id;
+  }, true);
+
+  const detail = document.querySelector("#recipeDetail");
+  if (!detail) return;
+
+  const observer = new MutationObserver(() => {
+    window.setTimeout(renderRecipeLink, 0);
+  });
+  observer.observe(detail, { childList: true, subtree: true });
+}
+
+function renderRecipeLink() {
+  const detail = document.querySelector("#recipeDetail");
+  if (!detail || detail.querySelector(".detail-link-line")) return;
+
+  const recipe = findCurrentRecipe();
+  const link = normalizeUrl(recipe?.sourceUrl || recipe?.link || "");
+  if (!link) return;
+
+  const line = document.createElement("div");
+  line.className = "detail-line detail-link-line";
+  line.innerHTML = `
+    <span class="detail-label">Link</span>
+    <div><a class="recipe-source-link" href="${escapeAttr(link)}" target="_blank" rel="noopener noreferrer">Abrir receta original</a></div>
+  `;
+
+  const timeLine = Array.from(detail.querySelectorAll(".detail-line"))
+    .find((item) => item.textContent.trim().startsWith("Tiempo"));
+  (timeLine || detail.querySelector(".detail-line"))?.after(line);
+}
+
+function findCurrentRecipe() {
+  const recipes = readStoredRecipes();
+  if (!recipes.length) return null;
+
+  if (currentRecipeId) {
+    const byId = recipes.find((recipe) => recipe.id === currentRecipeId);
+    if (byId) return byId;
+  }
+
+  const title = document.querySelector("#recipeDetail h2")?.textContent?.trim();
+  return recipes.find((recipe) => recipe.title === title) || null;
+}
+
+function readStoredRecipes() {
+  const code = localStorage.getItem("recetario:lastCookbookCode");
+  if (!code) return [];
+
+  const existingKey = Object.keys(localStorage).find((key) =>
+    key.startsWith("recetario:") && key.endsWith(":recipes")
+  );
+  if (!existingKey) return [];
+
+  try {
+    const recipes = JSON.parse(localStorage.getItem(existingKey) || "[]");
+    return Array.isArray(recipes) ? recipes : [];
+  } catch {
+    return [];
+  }
+}
+
+function normalizeUrl(value) {
+  const url = String(value || "").trim();
+  if (!url) return "";
+  if (/^https?:\/\//i.test(url)) return url;
+  return `https://${url}`;
+}
+
+function escapeAttr(value) {
+  return String(value || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
 }
 
 function returnToListAfterSave() {
