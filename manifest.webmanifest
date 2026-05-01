@@ -9,18 +9,6 @@
   "theme_color": "#f6c99e",
   "icons": [
     {
-      "src": "logo-recetario-320.png",
-      "sizes": "320x320",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "logo-recetario.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
       "src": "apple-touch-icon.png",
       "sizes": "120x120",
       "type": "image/png",
