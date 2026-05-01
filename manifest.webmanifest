@@ -9,6 +9,12 @@
   "theme_color": "#f6c99e",
   "icons": [
     {
+      "src": "logo-recetario.svg",
+      "sizes": "120x120",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
       "src": "apple-touch-icon.png",
       "sizes": "120x120",
       "type": "image/png",
