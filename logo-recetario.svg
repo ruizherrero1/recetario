@@ -1,3 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
-  <image href="apple-touch-icon.png" width="120" height="120" preserveAspectRatio="xMidYMid meet"/>
+  <rect width="120" height="120" rx="26" fill="#f7efe2"/>
+  <rect x="24" y="18" width="72" height="84" rx="6" fill="#fffaf3" stroke="#e8d5bf" stroke-width="1.5"/>
+  <line x1="36" y1="36" x2="84" y2="36" stroke="#c04e22" stroke-width="4" stroke-linecap="round"/>
+  <line x1="36" y1="50" x2="72" y2="50" stroke="#c04e22" stroke-width="4" stroke-linecap="round" opacity="0.6"/>
+  <line x1="36" y1="64" x2="84" y2="64" stroke="#c04e22" stroke-width="4" stroke-linecap="round" opacity="0.4"/>
+  <line x1="36" y1="78" x2="68" y2="78" stroke="#c04e22" stroke-width="4" stroke-linecap="round" opacity="0.25"/>
+  <circle cx="82" cy="88" r="18" fill="#c04e22"/>
+  <path d="M74 82 C78 70 92 70 96 78 C88 80 80 82 74 82Z" fill="#4d7c5e"/>
+  <line x1="82" y1="88" x2="82" y2="78" stroke="#fffaf3" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="82" y1="88" x2="88" y2="84" stroke="#fffaf3" stroke-width="2.5" stroke-linecap="round"/>
 </svg>

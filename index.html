@@ -1,212 +1,314 @@
 <!doctype html>
 <html lang="es">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <meta name="theme-color" content="#f6c99e">
-    <title>Recetario</title>
-    <link rel="icon" type="image/png" href="apple-touch-icon.png?v=11">
-    <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <link rel="manifest" href="manifest.webmanifest">
-    <link rel="stylesheet" href="styles.css">
-    <script src="firebase-config.js"></script>
-    <script src="import-recipe.js" defer></script>
-    <script src="drive-sync.js" defer></script>
-  </head>
-  <body>
-    <div id="lockScreen" class="lock-screen">
-      <section class="lock-panel">
-        <p class="eyebrow">Recetario compartido</p>
-        <img class="app-logo lock-logo" src="apple-touch-icon.png?v=11" alt="Recetas de Laura">
-        <h1>Mis recetas</h1>
-        <p class="muted">Introduce el codigo del recetario. Compartid el mismo codigo en los dos moviles para ver las mismas recetas.</p>
-        <label class="field">
-          <span>Codigo</span>
-          <input id="cookbookCode" type="text" autocomplete="off" placeholder="Ej. receta-casa-2026">
-        </label>
-        <button id="unlockButton" class="primary-button">Entrar</button>
-        <p id="lockMessage" class="message"></p>
-      </section>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#fdf8f1">
+<title>Recetario</title>
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="styles.css">
+<script src="firebase-config.js"></script>
+<script src="import-recipe.js" defer></script>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- LOCK SCREEN                                                  -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div id="lockScreen" class="lock-screen">
+  <section class="lock-panel">
+
+    <div class="lock-logo-wrap">
+      <!-- Logo SVG inline - siempre visible, sin dependencia de PNG -->
+      <svg class="lock-logo-svg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect width="120" height="120" rx="26" fill="#f7efe2"/>
+        <rect x="24" y="18" width="72" height="84" rx="6" fill="#fffaf3" stroke="#e8d5bf" stroke-width="1.5"/>
+        <line x1="36" y1="36" x2="84" y2="36" stroke="#c04e22" stroke-width="4" stroke-linecap="round"/>
+        <line x1="36" y1="50" x2="72" y2="50" stroke="#c04e22" stroke-width="4" stroke-linecap="round" opacity="0.6"/>
+        <line x1="36" y1="64" x2="84" y2="64" stroke="#c04e22" stroke-width="4" stroke-linecap="round" opacity="0.4"/>
+        <line x1="36" y1="78" x2="68" y2="78" stroke="#c04e22" stroke-width="4" stroke-linecap="round" opacity="0.25"/>
+        <circle cx="82" cy="88" r="18" fill="#c04e22"/>
+        <path d="M74 82 C78 70 92 70 96 78 C88 80 80 82 74 82Z" fill="#4d7c5e"/>
+        <line x1="82" y1="88" x2="82" y2="78" stroke="#fffaf3" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="82" y1="88" x2="88" y2="84" stroke="#fffaf3" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+      <h1 class="lock-title">Recetario</h1>
+      <p class="lock-subtitle">recetas de casa</p>
     </div>
 
-    <div id="appShell" class="app-shell hidden">
-      <header class="topbar">
-        <div class="brand-row">
-          <img class="app-logo topbar-logo" src="apple-touch-icon.png?v=11" alt="Recetas de Laura">
-          <div>
-            <p class="eyebrow">Recetario</p>
-            <h1>Mis recetas</h1>
-          </div>
+    <p class="muted">Introduce el código del recetario. Compartid el mismo código en los dos móviles para ver las mismas recetas.</p>
+
+    <label class="field">
+      <span>Código</span>
+      <input id="cookbookCode" type="text" autocomplete="off" placeholder="Ej. recetas-casa-2026">
+    </label>
+
+    <button id="unlockButton" class="primary-button">Entrar</button>
+    <p id="lockMessage" class="message"></p>
+
+  </section>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- APP SHELL                                                    -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div id="appShell" class="app-shell hidden">
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="brand-row">
+      <svg class="topbar-logo-svg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <rect width="120" height="120" rx="26" fill="#f7efe2"/>
+        <rect x="24" y="18" width="72" height="84" rx="6" fill="#fffaf3" stroke="#e8d5bf" stroke-width="1.5"/>
+        <line x1="36" y1="36" x2="84" y2="36" stroke="#c04e22" stroke-width="4" stroke-linecap="round"/>
+        <line x1="36" y1="50" x2="72" y2="50" stroke="#c04e22" stroke-width="4" stroke-linecap="round" opacity="0.6"/>
+        <line x1="36" y1="64" x2="84" y2="64" stroke="#c04e22" stroke-width="4" stroke-linecap="round" opacity="0.4"/>
+        <line x1="36" y1="78" x2="68" y2="78" stroke="#c04e22" stroke-width="4" stroke-linecap="round" opacity="0.25"/>
+        <circle cx="82" cy="88" r="18" fill="#c04e22"/>
+        <path d="M74 82 C78 70 92 70 96 78 C88 80 80 82 74 82Z" fill="#4d7c5e"/>
+        <line x1="82" y1="88" x2="82" y2="78" stroke="#fffaf3" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="82" y1="88" x2="88" y2="84" stroke="#fffaf3" stroke-width="2.5" stroke-linecap="round"/>
+      </svg>
+      <div class="brand-text">
+        <span class="eyebrow">mi</span>
+        <h1 class="topbar-title">Recetario</h1>
+      </div>
+    </div>
+    <button id="settingsButton" class="icon-button" title="Ajustes" aria-label="Ajustes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    </button>
+  </header>
+
+  <main>
+
+    <!-- ─── LIST VIEW ──────────────────────────────────────── -->
+    <section id="listView" class="view active">
+
+      <div class="tools-row">
+        <div class="search-wrap">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input id="searchInput" type="search" placeholder="Nombre, ingrediente, etiqueta…">
         </div>
-        <button id="settingsButton" class="icon-button" title="Ajustes" aria-label="Ajustes">&#9881;</button>
-      </header>
 
-      <main>
-        <section id="listView" class="view active">
-          <div class="tools-row">
-            <label class="search-box">
-              <span>Buscar</span>
-              <input id="searchInput" type="search" placeholder="Nombre, ingrediente, etiqueta...">
-            </label>
-            <select id="categoryFilter" aria-label="Filtrar por categoria">
-              <option value="">Todas</option>
-            </select>
-            <label class="sort-box">
-              <span>Ordenar</span>
-              <select id="sortSelect" aria-label="Ordenar recetas">
-                <option value="updatedDesc">Ultimas editadas</option>
-                <option value="createdDesc">Nuevas primero</option>
-                <option value="titleAsc">Nombre A-Z</option>
-                <option value="categoryAsc">Categoria</option>
-              </select>
-            </label>
+        <div class="sort-select-wrap">
+          <select id="categoryFilter" aria-label="Filtrar por categoría">
+            <option value="">Todas</option>
+          </select>
+        </div>
+
+        <div class="sort-select-wrap">
+          <select id="sortSelect" aria-label="Ordenar recetas">
+            <option value="updatedDesc">Recientes</option>
+            <option value="createdDesc">Nuevas</option>
+            <option value="titleAsc">A – Z</option>
+            <option value="categoryAsc">Categoría</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="syncStatus" class="sync-status">Modo local</div>
+
+      <div id="recipesList" class="recipes-list"></div>
+
+      <div id="emptyState" class="empty-state hidden">
+        <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>
+        </svg>
+        <h2>Aún no hay recetas</h2>
+        <p class="muted">Empieza creando una receta manual o importando una en JSON.</p>
+      </div>
+
+    </section>
+
+    <!-- ─── ADD / EDIT VIEW ────────────────────────────────── -->
+    <section id="addView" class="view">
+
+      <div class="mode-tabs" role="tablist" aria-label="Método de entrada">
+        <button class="mode-tab active" data-mode="manual">Manual</button>
+        <button class="mode-tab" data-mode="import">JSON</button>
+        <button class="mode-tab" data-mode="photo">Foto</button>
+        <button class="mode-tab" data-mode="link">Link</button>
+        <button class="mode-tab" data-mode="voice">Voz</button>
+      </div>
+
+      <form id="recipeForm" class="recipe-form">
+
+        <!-- Import mode -->
+        <div id="importMode" class="mode-panel">
+          <label class="field">
+            <span>Archivo JSON de receta</span>
+            <input id="singleRecipeFile" type="file" accept="application/json,.json">
+          </label>
+          <label class="field">
+            <span>O pega aquí la receta generada por chat</span>
+            <textarea id="singleRecipeText" rows="9" placeholder='{"title":"Tortilla de patatas","categories":["Cena"],"time":"35 min","ingredients":["..."],"steps":"..."}'></textarea>
+          </label>
+          <button id="importSingleRecipeButton" type="button" class="secondary-button">Cargar en formulario</button>
+          <p id="singleRecipeImportStatus" class="message"></p>
+        </div>
+
+        <!-- Photo mode -->
+        <div id="photoMode" class="mode-panel">
+          <label class="field">
+            <span>Foto de receta escrita</span>
+            <input id="photoInput" type="file" accept="image/*">
+          </label>
+          <button id="runOcrButton" type="button" class="secondary-button">Analizar foto</button>
+          <p id="ocrStatus" class="message"></p>
+        </div>
+
+        <!-- Link mode -->
+        <div id="linkMode" class="mode-panel">
+          <label class="field">
+            <span>Link</span>
+            <input id="recipeUrl" type="url" placeholder="https://…">
+          </label>
+          <button id="importLinkButton" type="button" class="secondary-button">Intentar importar</button>
+          <label class="field">
+            <span>Si no funciona, pega aquí el texto de la receta</span>
+            <textarea id="pastedRecipeText" rows="7" placeholder="Ingredientes, preparación, notas…"></textarea>
+          </label>
+          <button id="parseTextButton" type="button" class="secondary-button">Convertir texto en receta</button>
+          <p id="linkStatus" class="message"></p>
+        </div>
+
+        <!-- Voice mode -->
+        <div id="voiceMode" class="mode-panel">
+          <div class="voice-actions">
+            <button id="startVoiceButton" type="button" class="secondary-button">Dictar receta</button>
+            <button id="stopVoiceButton" type="button" class="secondary-button" disabled>Parar</button>
           </div>
-          <div id="syncStatus" class="sync-status">Modo local</div>
-          <div id="recipesList" class="recipes-list"></div>
-          <div id="emptyState" class="empty-state hidden">
-            <h2>Aun no hay recetas</h2>
-            <p>Empieza creando una receta manual o importando una receta en JSON.</p>
-          </div>
-        </section>
+          <label class="field">
+            <span>Texto detectado</span>
+            <textarea id="voiceText" rows="7"></textarea>
+          </label>
+          <button id="parseVoiceButton" type="button" class="secondary-button">Convertir voz en receta</button>
+          <p id="voiceStatus" class="message"></p>
+        </div>
 
-        <section id="addView" class="view">
-          <div class="mode-tabs" role="tablist" aria-label="Metodo de entrada">
-            <button class="mode-tab active" data-mode="manual">Manual</button>
-            <button class="mode-tab" data-mode="import">Importar</button>
-          </div>
+        <!-- Manual mode (always shown below) -->
+        <div id="manualMode" class="mode-panel active"></div>
 
-          <form id="recipeForm" class="recipe-form">
-            <div id="manualMode" class="mode-panel active"></div>
+        <!-- Form fields (shared) -->
+        <div class="form-grid">
+          <label class="field">
+            <span>Título *</span>
+            <input id="titleInput" name="title" required placeholder="Nombre de la receta">
+          </label>
+          <label class="field">
+            <span>Tiempo</span>
+            <input id="timeInput" name="time" placeholder="35 min">
+          </label>
+          <label class="field">
+            <span>Categorías</span>
+            <input id="categoriesInput" name="categories" placeholder="Cena, pasta, familiar">
+          </label>
+          <label class="field">
+            <span>Etiquetas</span>
+            <input id="tagsInput" name="tags" placeholder="rápida, horno, vegetariana">
+          </label>
+          <label class="field link-field">
+            <span>Link original</span>
+            <input id="sourceUrlInput" name="sourceUrl" type="url" placeholder="https://…">
+          </label>
+        </div>
 
-            <div id="importMode" class="mode-panel">
-              <label class="field">
-                <span>Archivo JSON de receta</span>
-                <input id="singleRecipeFile" type="file" accept="application/json,.json">
-              </label>
-              <label class="field">
-                <span>O pega aqui la receta generada por chat</span>
-                <textarea id="singleRecipeText" rows="9" placeholder='{"title":"Tortilla de patatas","categories":["Cena"],"time":"35 min","ingredients":["..."],"steps":"..."}'></textarea>
-              </label>
-              <button id="importSingleRecipeButton" type="button" class="secondary-button">Cargar en formulario</button>
-              <p id="singleRecipeImportStatus" class="message"></p>
-            </div>
+        <label class="field">
+          <span>Ingredientes *</span>
+          <textarea id="ingredientsInput" name="ingredients" rows="7" required placeholder="Un ingrediente por línea"></textarea>
+        </label>
 
-            <div id="photoMode" class="mode-panel">
-              <label class="field">
-                <span>Foto de receta escrita</span>
-                <input id="photoInput" type="file" accept="image/*">
-              </label>
-              <button id="runOcrButton" type="button" class="secondary-button">Analizar foto</button>
-              <p id="ocrStatus" class="message"></p>
-            </div>
+        <label class="field">
+          <span>Preparación *</span>
+          <textarea id="stepsInput" name="steps" rows="8" required placeholder="Pasos de preparación"></textarea>
+        </label>
 
-            <div id="linkMode" class="mode-panel">
-              <label class="field">
-                <span>Link</span>
-                <input id="recipeUrl" type="url" placeholder="https://...">
-              </label>
-              <button id="importLinkButton" type="button" class="secondary-button">Intentar importar</button>
-              <label class="field">
-                <span>Si no funciona, pega aqui el texto de la receta</span>
-                <textarea id="pastedRecipeText" rows="7" placeholder="Ingredientes, preparacion, notas..."></textarea>
-              </label>
-              <button id="parseTextButton" type="button" class="secondary-button">Convertir texto en receta</button>
-              <p id="linkStatus" class="message"></p>
-            </div>
+        <label class="field">
+          <span>Notas</span>
+          <textarea id="notesInput" name="notes" rows="4" placeholder="Trucos, variaciones, observaciones…"></textarea>
+        </label>
 
-            <div id="voiceMode" class="mode-panel">
-              <div class="voice-actions">
-                <button id="startVoiceButton" type="button" class="secondary-button">Dictar receta</button>
-                <button id="stopVoiceButton" type="button" class="secondary-button" disabled>Parar</button>
-              </div>
-              <label class="field">
-                <span>Texto detectado</span>
-                <textarea id="voiceText" rows="7"></textarea>
-              </label>
-              <button id="parseVoiceButton" type="button" class="secondary-button">Convertir voz en receta</button>
-              <p id="voiceStatus" class="message"></p>
-            </div>
+        <input id="editingId" type="hidden">
 
-            <div class="form-grid">
-              <label class="field">
-                <span>Titulo</span>
-                <input id="titleInput" name="title" required>
-              </label>
-              <label class="field">
-                <span>Categorias</span>
-                <input id="categoriesInput" name="categories" placeholder="Cena, pasta, familiar">
-              </label>
-              <label class="field">
-                <span>Tiempo</span>
-                <input id="timeInput" name="time" placeholder="35 min">
-              </label>
-              <label class="field">
-                <span>Etiquetas</span>
-                <input id="tagsInput" name="tags" placeholder="rapida, horno, vegetariana">
-              </label>
-              <label class="field link-field">
-                <span>Link</span>
-                <input id="sourceUrlInput" name="sourceUrl" type="url" placeholder="https://...">
-              </label>
-            </div>
+        <div class="form-actions">
+          <button id="cancelEditButton" type="button" class="ghost-button hidden">Cancelar</button>
+          <button type="submit" class="primary-button">Guardar receta</button>
+        </div>
 
-            <label class="field">
-              <span>Ingredientes</span>
-              <textarea id="ingredientsInput" name="ingredients" rows="7" required placeholder="Un ingrediente por linea"></textarea>
-            </label>
-            <label class="field">
-              <span>Receta</span>
-              <textarea id="stepsInput" name="steps" rows="8" required placeholder="Pasos de preparacion"></textarea>
-            </label>
-            <label class="field">
-              <span>Notas</span>
-              <textarea id="notesInput" name="notes" rows="4"></textarea>
-            </label>
-            <input id="editingId" type="hidden">
-            <div class="form-actions">
-              <button id="cancelEditButton" type="button" class="ghost-button hidden">Cancelar</button>
-              <button type="submit" class="primary-button">Guardar receta</button>
-            </div>
-          </form>
-        </section>
+      </form>
+    </section>
 
-        <section id="detailView" class="view">
-          <article id="recipeDetail" class="recipe-detail"></article>
-        </section>
-      </main>
+    <!-- ─── DETAIL VIEW ────────────────────────────────────── -->
+    <section id="detailView" class="view">
+      <article id="recipeDetail" class="recipe-detail"></article>
+    </section>
 
-      <nav class="bottom-nav" aria-label="Navegacion principal">
-        <button class="nav-button active" data-view="listView">Recetas</button>
-        <button class="nav-button" data-view="addView">A&ntilde;adir</button>
-      </nav>
+  </main>
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav" aria-label="Navegación principal">
+    <button class="nav-button active" data-view="listView">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      Recetas
+    </button>
+    <button class="nav-button" data-view="addView">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="16"/>
+        <line x1="8" y1="12" x2="16" y2="12"/>
+      </svg>
+      Añadir
+    </button>
+  </nav>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- SETTINGS DIALOG                                              -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<dialog id="settingsDialog">
+  <form method="dialog" class="settings-panel">
+    <h2>Ajustes</h2>
+
+    <p id="settingsSyncText" class="muted"></p>
+    <p id="backupStatus" class="muted"></p>
+
+    <div class="settings-group" id="driveGroup">
+      <h3>Google Drive</h3>
+      <p id="driveStatus" class="muted"></p>
+      <button id="driveConnectButton" type="button" class="secondary-button">Conectar Drive</button>
+      <button id="driveRefreshButton" type="button" class="secondary-button hidden">Actualizar desde Drive</button>
+      <button id="driveExportButton" type="button" class="secondary-button hidden">Subir todo a Drive</button>
     </div>
 
-    <dialog id="settingsDialog">
-      <form method="dialog" class="settings-panel">
-        <h2>Ajustes</h2>
-        <p id="settingsSyncText" class="muted"></p>
-        <p id="backupStatus" class="muted"></p>
-        <section class="settings-group" aria-label="Google Drive">
-          <h3>Google Drive</h3>
-          <p id="driveStatus" class="muted"></p>
-          <button id="driveConnectButton" type="button" class="secondary-button">Conectar Drive</button>
-          <button id="driveRefreshButton" type="button" class="secondary-button hidden">Actualizar desde Drive</button>
-          <button id="driveExportButton" type="button" class="secondary-button hidden">Subir todo a Drive</button>
-        </section>
-        <button id="exportButton" type="button" class="secondary-button">Exportar copia JSON</button>
-        <label class="secondary-button file-button">
-          Importar copia JSON
-          <input id="importBackupInput" type="file" accept="application/json">
-        </label>
-        <details class="install-help">
-          <summary>Instalar en iPhone</summary>
-          <p>Abre la app en Safari, pulsa compartir y elige "A&ntilde;adir a pantalla de inicio". Si el icono no cambia, borra el acceso antiguo y vuelve a a&ntilde;adirlo.</p>
-        </details>
-        <button id="changeCodeButton" type="button" class="ghost-button">Cambiar codigo</button>
-        <button class="primary-button">Cerrar</button>
-      </form>
-    </dialog>
+    <button id="exportButton" type="button" class="secondary-button">Exportar copia JSON</button>
 
-    <script type="module" src="app.js"></script>
-  </body>
+    <label class="secondary-button file-button">
+      Importar copia JSON
+      <input id="importBackupInput" type="file" accept="application/json">
+    </label>
+
+    <details class="install-help">
+      <summary>Instalar en iPhone</summary>
+      <p>Abre la app en Safari, pulsa compartir y elige "Añadir a pantalla de inicio". Si el icono no cambia, borra el acceso antiguo y vuelve a añadirlo.</p>
+    </details>
+
+    <button id="changeCodeButton" type="button" class="ghost-button">Cambiar código</button>
+    <button class="primary-button">Cerrar</button>
+  </form>
+</dialog>
+
+<script type="module" src="app.js"></script>
+</body>
 </html>
