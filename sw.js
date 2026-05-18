@@ -1,4 +1,4 @@
-const CACHE_NAME = "recetario-v18";
+const CACHE_NAME = "recetario-v19";
 const ASSETS = [
   "./",
   "./index.html",
