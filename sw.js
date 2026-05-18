@@ -1,8 +1,9 @@
-const CACHE_NAME = "recetario-v20";
+const CACHE_NAME = "recetario-v21";
 const ASSETS = [
   "./",
   "./index.html",
   "./styles.css",
+  "./mobile-grid.css",
   "./app.js",
   "./app-fix.js",
   "./import-recipe.js",
@@ -53,9 +54,15 @@ async function indexWithFix(request) {
   if (!type.includes("text/html")) return response;
 
   const html = await response.text();
-  const fixed = html.includes("app-fix.js")
+  const withMobileCss = html.includes("mobile-grid.css")
     ? html
     : html.replace(
+      '<link rel="stylesheet" href="styles.css">',
+      '<link rel="stylesheet" href="styles.css">\n<link rel="stylesheet" href="./mobile-grid.css">'
+    );
+  const fixed = withMobileCss.includes("app-fix.js")
+    ? withMobileCss
+    : withMobileCss.replace(
       '<script type="module" src="app.js"></script>',
       '<script src="./app-fix.js"></script>\n<script type="module" src="app.js"></script>'
     );
