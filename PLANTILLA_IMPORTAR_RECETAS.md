@@ -13,6 +13,9 @@ Reglas:
 - Devuelve SOLO un bloque JSON valido.
 - No incluyas explicaciones fuera del JSON.
 - Si no sabes algun dato, usa "" o [].
+- Crea siempre un `id` estable para la receta.
+- El `id` debe ir en minusculas, sin tildes, sin espacios y usando guiones bajos. Ejemplo: `pollo_asado`, `tarta_de_queso`, `lentejas_con_chorizo`.
+- Si vas a guardar la receta como archivo en Drive, el nombre del archivo debe ser exactamente el `id` con extension `.json`. Ejemplo: `pollo_asado.json`.
 - Convierte ingredientes en una lista, un ingrediente por elemento.
 - Convierte la preparacion en texto claro con pasos separados por saltos de linea.
 - Usa categorias amplias y utiles. Una receta puede tener varias categorias.
@@ -24,6 +27,7 @@ Reglas:
 
 Formato exacto:
 {
+  "id": "",
   "title": "",
   "categories": [],
   "time": "",
@@ -42,6 +46,7 @@ Contenido a convertir:
 
 ```json
 {
+  "id": "tortilla_de_patatas",
   "title": "Tortilla de patatas",
   "categories": ["Cena", "Comida", "Tradicional"],
   "time": "35 min",
@@ -71,6 +76,7 @@ Contenido a convertir:
 
 ## Contrato de datos
 
+- `id`: identificador obligatorio recomendado para sincronizar. Usa minusculas, sin tildes, sin espacios y con guiones bajos. Debe coincidir con el nombre del archivo si lo guardas en Drive: `id.json`.
 - `title`: texto obligatorio recomendado.
 - `categories`: lista de categorias. Puede tener varias.
 - `time`: texto libre, por ejemplo `25 min`.
