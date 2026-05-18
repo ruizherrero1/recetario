@@ -1,0 +1,51 @@
+@media (max-width: 560px) {
+  .recipes-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .recipe-card {
+    min-width: 0;
+    border-radius: 8px;
+  }
+
+  .card-img-wrap {
+    aspect-ratio: 3 / 2;
+  }
+
+  .card-body {
+    padding: 8px;
+    gap: 5px;
+  }
+
+  .recipe-card h2 {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    font-size: 0.82rem;
+    line-height: 1.18;
+  }
+
+  .card-meta {
+    gap: 3px;
+    max-height: 23px;
+    overflow: hidden;
+  }
+
+  .chip {
+    max-width: 100%;
+    padding: 2px 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.64rem;
+  }
+
+  .card-type-badge {
+    top: 5px;
+    right: 5px;
+    padding: 2px 6px;
+    font-size: 0.58rem;
+  }
+}
