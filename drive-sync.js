@@ -32,7 +32,7 @@
 
   function bindDriveUi() {
     document.querySelector("#driveConnectButton")?.addEventListener("click", () => connectDrive({ silent: false }));
-    document.querySelector("#driveRefreshButton")?.addEventListener("click", () => syncFromDrive({ uploadLocal: true, reload: true }));
+    document.querySelector("#driveRefreshButton")?.addEventListener("click", () => syncFromDrive({ uploadLocal: false, reload: true }));
     document.querySelector("#driveExportButton")?.addEventListener("click", () => exportRecipesToDrive(getLocalRecipes()));
   }
 
@@ -60,7 +60,7 @@
             driveState.ready = true;
             localStorage.setItem(DRIVE_ENABLED_KEY, "1");
             renderDriveStatus();
-            await syncFromDrive({ uploadLocal: true, reload: true });
+            await syncFromDrive({ uploadLocal: false, reload: true });
           }
         });
       }
@@ -114,7 +114,8 @@
         const driveById = new Map(driveRecipes.map((recipe) => [recipe.id, recipe]));
         const pending = before.filter((recipe) => {
           const driveRecipe = driveById.get(recipe.id);
-          return !driveRecipe || dateValue(recipe.updatedAt || recipe.createdAt) > dateValue(driveRecipe.updatedAt || driveRecipe.createdAt);
+          return !hasEquivalentDriveRecipe(recipe, driveRecipes)
+            && (!driveRecipe || dateValue(recipe.updatedAt || recipe.createdAt) > dateValue(driveRecipe.updatedAt || driveRecipe.createdAt));
         });
         for (const recipe of pending) await writeRecipeToDrive(recipe);
       }
@@ -307,12 +308,49 @@
 
   function mergeRecipes(localRecipes, driveRecipes) {
     const byId = new Map();
-    [...localRecipes, ...driveRecipes].forEach((recipe) => {
+    const byIdentity = new Map();
+
+    localRecipes.forEach((recipe) => {
       if (!recipe?.id) return;
+      byId.set(recipe.id, recipe);
+      const identity = recipeIdentity(recipe);
+      if (identity) byIdentity.set(identity, recipe.id);
+    });
+
+    driveRecipes.forEach((recipe) => {
+      if (!recipe?.id) return;
+      const identity = recipeIdentity(recipe);
+      const duplicateId = identity ? byIdentity.get(identity) : "";
+      if (duplicateId && duplicateId !== recipe.id) {
+        byId.delete(duplicateId);
+      }
+
       const current = byId.get(recipe.id);
       byId.set(recipe.id, !current || dateValue(recipe.updatedAt || recipe.createdAt) >= dateValue(current.updatedAt || current.createdAt) ? recipe : current);
+      if (identity) byIdentity.set(identity, recipe.id);
     });
+
     return Array.from(byId.values()).sort((a, b) => dateValue(b.updatedAt || b.createdAt) - dateValue(a.updatedAt || a.createdAt));
+  }
+
+  function hasEquivalentDriveRecipe(recipe, driveRecipes) {
+    const identity = recipeIdentity(recipe);
+    return Boolean(identity && driveRecipes.some((driveRecipe) => recipeIdentity(driveRecipe) === identity));
+  }
+
+  function recipeIdentity(recipe) {
+    const url = normalizeText(recipe?.sourceUrl || recipe?.link || recipe?.url).replace(/\/$/, "");
+    if (url) return `url:${url}`;
+    const title = normalizeText(recipe?.title || recipe?.nombre || recipe?.name);
+    return title ? `title:${title}` : "";
+  }
+
+  function normalizeText(value) {
+    return String(value || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim();
   }
 
   function createMultipartBody(metadata, json) {
