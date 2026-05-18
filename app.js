@@ -301,14 +301,35 @@ function renderList() {
   });
 }
 
+const CARD_IMG_SALADO = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgMzAwIj4KICA8cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2YwZTRkMCIvPgogIDxlbGxpcHNlIGN4PSIyMDAiIGN5PSIxNzUiIHJ4PSIxMzAiIHJ5PSIxOCIgZmlsbD0icmdiYSgxNjAsOTAsNDAsMC4xNSkiLz4KICA8Y2lyY2xlIGN4PSIyMDAiIGN5PSIxNTAiIHI9IjEwNSIgZmlsbD0iI2U4Yzk5YSIvPgogIDxjaXJjbGUgY3g9IjIwMCIgY3k9IjE1MCIgcj0iOTUiIGZpbGw9IiNmNWU2YzgiLz4KICA8Y2lyY2xlIGN4PSIyMDAiIGN5PSIxNTAiIHI9IjgwIiBmaWxsPSIjZmZmOGVmIi8+CiAgPGVsbGlwc2UgY3g9IjE4NSIgY3k9IjE0OCIgcng9IjI4IiByeT0iMjIiIGZpbGw9IiNjODVlMzEiIG9wYWNpdHk9IjAuODUiLz4KICA8ZWxsaXBzZSBjeD0iMjE1IiBjeT0iMTUyIiByeD0iMjQiIHJ5PSIyMCIgZmlsbD0iI2Q0NzkzZSIgb3BhY2l0eT0iMC44Ii8+CiAgPGVsbGlwc2UgY3g9IjIwMCIgY3k9IjE0MCIgcng9IjIwIiByeT0iMTYiIGZpbGw9IiNiODRkMjgiIG9wYWNpdHk9IjAuOSIvPgogIDxwYXRoIGQ9Ik0xNjAgMTI4IFExNzAgMTE4IDE4MCAxMjUgUTE4NSAxMTAgMTk1IDEyMCBRMjAwIDEwOCAyMTAgMTE4IFEyMjAgMTEyIDIyOCAxMjQiIHN0cm9rZT0iIzRkN2M1ZSIgc3Ryb2tlLXdpZHRoPSIyLjUiIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDxwYXRoIGQ9Ik0xNzIgMTM0IFExODAgMTI2IDE4OCAxMzIgUTE5MyAxMjIgMjAyIDEzMCBRMjA4IDEyMCAyMTYgMTMwIiBzdHJva2U9IiM1YThmNmEiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPHBhdGggZD0iTTE4NSA2MCBRMTgzIDUwIDE4NiA0MiBRMTg5IDM0IDE4NiAyNiIgc3Ryb2tlPSIjYzhhODdhIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgb3BhY2l0eT0iMC41Ii8+CiAgPHBhdGggZD0iTTIwMCA1NiBRMTk3IDQ0IDIwMCAzNSBRMjAzIDI2IDIwMCAxOCIgc3Ryb2tlPSIjYzhhODdhIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgb3BhY2l0eT0iMC40Ii8+CiAgPHBhdGggZD0iTTIxNSA2MCBRMjEzIDQ4IDIxNiA0MCBRMjE5IDMyIDIxNiAyNCIgc3Ryb2tlPSIjYzhhODdhIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgb3BhY2l0eT0iMC41Ii8+Cjwvc3ZnPg==";
+const CARD_IMG_POSTRE = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0MDAgMzAwIj4KICA8cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2ZkZThkOCIvPgogIDxlbGxpcHNlIGN4PSIyMDAiIGN5PSIyMTAiIHJ4PSIxMjAiIHJ5PSIxNCIgZmlsbD0icmdiYSgxNjAsOTAsNDAsMC4xMikiLz4KICA8cGF0aCBkPSJNMTIwIDIwMCBMMjAwIDExMCBMMjgwIDIwMCBRMjgwIDIyMCAyMDAgMjI0IFExMjAgMjIwIDEyMCAyMDBaIiBmaWxsPSIjZThiODlhIi8+CiAgPHBhdGggZD0iTTEyMiAxOTYgTDIwMCAxMTAgTDI3OCAxOTYgUTI3OCAxOTggMjAwIDIwMiBRMTIyIDE5OCAxMjIgMTk2WiIgZmlsbD0iI2MwNGUyMiIvPgogIDxwYXRoIGQ9Ik0xMjQgMTkzIEwyMDAgMTEyIEwyNzYgMTkzIiBmaWxsPSJub25lIiBzdHJva2U9IiNmNWUzZDgiIHN0cm9rZS13aWR0aD0iMiIgb3BhY2l0eT0iMC42Ii8+CiAgPHBhdGggZD0iTTEyMCAyMDAgUTIwMCAyMDggMjgwIDIwMCBRMjgwIDIxMCAyMDAgMjE2IFExMjAgMjEwIDEyMCAyMDBaIiBmaWxsPSIjZTg5NzVhIi8+CiAgPGVsbGlwc2UgY3g9IjIwMCIgY3k9IjE5NiIgcng9IjgwIiByeT0iOCIgZmlsbD0iI2Y1YzVhMCIgb3BhY2l0eT0iMC44Ii8+CiAgPHBhdGggZD0iTTE0MCAxOTYgUTE2NSAxODIgMTkwIDE4OCBRMjEwIDE4MiAyNDAgMTkyIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMS41IiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiIG9wYWNpdHk9IjAuNiIvPgogIDxjaXJjbGUgY3g9IjE3NSIgY3k9IjE3MCIgcj0iNyIgZmlsbD0iI2I4NGQyOCIvPgogIDxjaXJjbGUgY3g9IjIwMCIgY3k9IjE1OCIgcj0iNyIgZmlsbD0iI2I4NGQyOCIvPgogIDxjaXJjbGUgY3g9IjIyNSIgY3k9IjE3MCIgcj0iNyIgZmlsbD0iI2I4NGQyOCIvPgogIDxjaXJjbGUgY3g9IjE3NSIgY3k9IjE3MCIgcj0iNCIgZmlsbD0iIzhiMWExYSIvPgogIDxjaXJjbGUgY3g9IjIwMCIgY3k9IjE1OCIgcj0iNCIgZmlsbD0iIzhiMWExYSIvPgogIDxjaXJjbGUgY3g9IjIyNSIgY3k9IjE3MCIgcj0iNCIgZmlsbD0iIzhiMWExYSIvPgogIDxwYXRoIGQ9Ik0xODUgMTI1IFExODcgMTEwIDE5MCAxMDAgUTE5MiA5MiAxOTAgODQiIHN0cm9rZT0iIzRkN2M1ZSIgc3Ryb2tlLXdpZHRoPSIyLjUiIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDxlbGxpcHNlIGN4PSIxOTAiIGN5PSI4MCIgcng9IjgiIHJ5PSIxMiIgZmlsbD0iIzRkN2M1ZSIgb3BhY2l0eT0iMC44Ii8+CiAgPHBhdGggZD0iTTIxNSAxMzAgUTIxNyAxMTUgMjIwIDEwNSBRMjIyIDk3IDIyMCA4OSIgc3Ryb2tlPSIjNGQ3YzVlIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDxlbGxpcHNlIGN4PSIyMjAiIGN5PSI4NSIgcng9IjYiIHJ5PSIxMCIgZmlsbD0iIzRkN2M1ZSIgb3BhY2l0eT0iMC43Ii8+Cjwvc3ZnPg==";
+
+const POSTRE_CATS = ["postre","postres","repostería","reposteria","dulce","dulces","bizcocho","bizcochos","tarta","tartas","galletas","helado","helados","cake","dessert"];
+const SALADO_CATS = ["cena","comida","desayuno","almuerzo","aperitivo","tapas","entrante","primero","segundo","carne","pescado","verdura","pasta","arroz","sopa","ensalada","salado","guarnición","guarnicion"];
+
+function recipeType(recipe) {
+  const all = [...(recipe.categories || []), ...(recipe.tags || [])].map(s => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,""));
+  if (all.some(s => POSTRE_CATS.includes(s))) return "postre";
+  if (all.some(s => SALADO_CATS.includes(s))) return "salado";
+  return "salado";
+}
+
 function recipeCard(recipe) {
-  const chips = [...(recipe.categories || []), ...(recipe.tags || []).slice(0, 3)];
+  const type = recipeType(recipe);
+  const img = type === "postre" ? CARD_IMG_POSTRE : CARD_IMG_SALADO;
+  const typeLabel = type === "postre" ? "Postre" : "Salado";
+  const typeClass = type === "postre" ? "chip-postre" : "chip-salado";
   return `
     <button class="recipe-card" data-id="${escapeAttr(recipe.id)}">
-      <h2>${escapeHtml(recipe.title)}</h2>
-      <div class="card-meta">
-        ${recipe.time ? `<span class="chip">${escapeHtml(recipe.time)}</span>` : ""}
-        ${chips.map((chip) => `<span class="chip">${escapeHtml(chip)}</span>`).join("")}
+      <div class="card-img-wrap">
+        <img class="card-img" src="${img}" alt="${typeLabel}" loading="lazy">
+        <span class="card-type-badge ${typeClass}">${typeLabel}</span>
+      </div>
+      <div class="card-body">
+        <h2>${escapeHtml(recipe.title)}</h2>
+        <div class="card-meta">
+          ${recipe.time ? `<span class="chip chip-time"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>${escapeHtml(recipe.time)}</span>` : ""}
+        </div>
       </div>
     </button>
   `;
