@@ -1,0 +1,34 @@
+.lock-logo-svg,
+.topbar-logo-svg {
+  display: block;
+  background: url("./apple-touch-icon.png?v=12") center / contain no-repeat;
+}
+
+.lock-logo-svg > *,
+.topbar-logo-svg > * {
+  display: none;
+}
+
+.lock-logo-svg {
+  width: min(220px, 62vw);
+  height: min(220px, 62vw);
+  margin: 0 auto 8px;
+}
+
+.topbar-logo-svg {
+  width: 58px;
+  height: 58px;
+  flex: 0 0 auto;
+}
+
+@media (max-width: 560px) {
+  .lock-logo-svg {
+    width: min(190px, 58vw);
+    height: min(190px, 58vw);
+  }
+
+  .topbar-logo-svg {
+    width: 48px;
+    height: 48px;
+  }
+}
