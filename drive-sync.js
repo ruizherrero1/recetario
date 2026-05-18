@@ -23,6 +23,7 @@
     ensureDriveUi();
     patchLocalStorageUploads();
     bindDriveUi();
+    bindStableRecipeIds();
     renderDriveStatus();
 
     if (localStorage.getItem(DRIVE_ENABLED_KEY) === "1") {
@@ -34,6 +35,26 @@
     document.querySelector("#driveConnectButton")?.addEventListener("click", () => connectDrive({ silent: false }));
     document.querySelector("#driveRefreshButton")?.addEventListener("click", () => syncFromDrive({ uploadLocal: false, reload: true }));
     document.querySelector("#driveExportButton")?.addEventListener("click", () => exportRecipesToDrive(getLocalRecipes()));
+  }
+
+  function bindStableRecipeIds() {
+    document.querySelector("#recipeForm")?.addEventListener("submit", prepareRecipeIdBeforeSave, true);
+  }
+
+  function prepareRecipeIdBeforeSave() {
+    const editingInput = document.querySelector("#editingId");
+    const titleInput = document.querySelector("#titleInput");
+    if (!editingInput || !titleInput || editingInput.value.trim()) return;
+
+    const base = slugify(titleInput.value) || "receta";
+    const used = new Set(getLocalRecipes().map((recipe) => recipe.id).filter(Boolean));
+    let id = base;
+    let counter = 2;
+    while (used.has(id)) {
+      id = `${base}_${counter}`;
+      counter += 1;
+    }
+    editingInput.value = id;
   }
 
   async function connectDrive({ silent }) {
