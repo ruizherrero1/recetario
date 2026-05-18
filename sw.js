@@ -5,6 +5,7 @@ const ASSETS = [
   "./styles.css",
   "./app.js",
   "./import-recipe.js",
+  "./drive-sync.js",
   "./apple-touch-icon.png",
   "./manifest.webmanifest"
 ];
