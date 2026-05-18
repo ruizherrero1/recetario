@@ -180,6 +180,12 @@
       return;
     }
 
+    const preparedRecipes = normalizeGeneratedRecipeIds(recipes);
+    if (stableJson(preparedRecipes) !== stableJson(recipes)) {
+      setLocalRecipes(preparedRecipes);
+      recipes = preparedRecipes;
+    }
+
     driveState.syncing = true;
     setDriveStatus(`Subiendo ${recipes.length} receta(s) a Drive...`);
 
@@ -351,6 +357,37 @@
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "")
       .trim();
+  }
+
+  function normalizeGeneratedRecipeIds(recipes) {
+    const used = new Set();
+    return (recipes || []).map((recipe) => {
+      if (!recipe?.title) return recipe;
+      if (recipe.id && !looksGeneratedId(recipe.id)) {
+        used.add(recipe.id);
+        return recipe;
+      }
+
+      const base = slugify(recipe.title) || "receta";
+      let id = base;
+      let counter = 2;
+      while (used.has(id)) {
+        id = `${base}_${counter}`;
+        counter += 1;
+      }
+      used.add(id);
+      return { ...recipe, id };
+    });
+  }
+
+  function looksGeneratedId(id) {
+    return /^[a-f0-9]{20}$/i.test(String(id || ""));
+  }
+
+  function slugify(value) {
+    return normalizeText(value)
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "");
   }
 
   function createMultipartBody(metadata, json) {
