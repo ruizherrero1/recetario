@@ -10,10 +10,20 @@ const state = {
   db: null,
   auth: null,
   firebase: null,
+  syncInProgress: false,
+  drive: {
+    accessToken: "",
+    tokenClient: null,
+    ready: false,
+    syncing: false,
+    fileIds: new Map()
+  },
   sortMode: localStorage.getItem("recetario:sortMode") || "updatedDesc"
 };
 
 const localKey = () => `recetario:${state.cookbookId}:recipes`;
+const driveConfig = () => window.RECETARIO_DRIVE_CONFIG || {};
+const driveScope = "https://www.googleapis.com/auth/drive";
 
 const form = $("#recipeForm");
 const lockScreen = $("#lockScreen");
@@ -30,6 +40,9 @@ $("#settingsButton").addEventListener("click", openSettings);
 $("#changeCodeButton").addEventListener("click", changeCode);
 $("#exportButton").addEventListener("click", exportBackup);
 $("#importBackupInput").addEventListener("change", importBackup);
+$("#driveConnectButton")?.addEventListener("click", connectGoogleDrive);
+$("#driveRefreshButton")?.addEventListener("click", () => refreshFromDrive(true));
+$("#driveExportButton")?.addEventListener("click", () => exportRecipesToDrive(state.recipes));
 $("#searchInput").addEventListener("input", renderList);
 $("#categoryFilter").addEventListener("change", renderList);
 if ($("#sortSelect")) {
@@ -59,10 +72,14 @@ $("#parseVoiceButton").addEventListener("click", () => fillFormFromText($("#voic
 window.addEventListener("beforeprint", () => showView("detailView", false));
 
 if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    window.location.reload();
+  });
   navigator.serviceWorker.register("./sw.js").then((registration) => {
     if (registration.waiting) {
       registration.waiting.postMessage({ type: "SKIP_WAITING" });
     }
+    registration.update?.();
   }).catch(() => {});
 }
 
@@ -122,10 +139,26 @@ function subscribeToCloudRecipes() {
   const ref = collection(state.db, "cookbooks", state.cookbookId, "recipes");
   state.unsubscribe = onSnapshot(
     query(ref, orderBy("updatedAt", "desc")),
-    (snapshot) => {
-      state.recipes = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+    async (snapshot) => {
+      const localRecipes = [...state.recipes];
+      const cloudRecipes = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      const cloudById = new Map(cloudRecipes.map((recipe) => [recipe.id, recipe]));
+      const pendingLocalRecipes = localRecipes.filter((recipe) => {
+        if (!recipe?.id) return false;
+        const cloudRecipe = cloudById.get(recipe.id);
+        return !cloudRecipe || dateValue(recipe.updatedAt || recipe.createdAt) > dateValue(cloudRecipe.updatedAt || cloudRecipe.createdAt);
+      });
+
+      state.recipes = mergeRecipes(localRecipes, cloudRecipes);
       saveLocalRecipes();
       renderAll();
+
+      if (pendingLocalRecipes.length) {
+        setSyncStatus(`Subiendo ${pendingLocalRecipes.length} receta(s) pendiente(s)...`);
+        await syncLocalRecipesToCloud(pendingLocalRecipes);
+        return;
+      }
+
       setSyncStatus("Sincronizado con Firebase.");
     },
     (error) => {
@@ -159,8 +192,19 @@ async function saveRecipe(recipe) {
   renderAll();
 
   if (state.firebaseReady) {
-    const { doc, setDoc } = state.firebase;
-    await setDoc(doc(state.db, "cookbooks", state.cookbookId, "recipes", recipe.id), recipe);
+    try {
+      await writeRecipeToCloud(recipe);
+    } catch {
+      // The local copy is already saved and will be retried on the next cloud snapshot.
+    }
+  }
+
+  if (state.drive.ready) {
+    try {
+      await writeRecipeToDrive(recipe);
+    } catch {
+      setSyncStatus("Guardada en este movil. Pendiente de subir a Drive.");
+    }
   }
 }
 
@@ -176,6 +220,14 @@ async function deleteRecipe(recipeId) {
   if (state.firebaseReady) {
     const { deleteDoc, doc } = state.firebase;
     await deleteDoc(doc(state.db, "cookbooks", state.cookbookId, "recipes", recipeId));
+  }
+
+  if (state.drive.ready) {
+    try {
+      await deleteRecipeFromDrive(recipeId);
+    } catch {
+      setSyncStatus("Eliminada en este movil. Revisa Drive cuando vuelvas a conectar.");
+    }
   }
 }
 
@@ -387,6 +439,288 @@ function sortRecipes(recipes) {
   });
 }
 
+async function syncLocalRecipesToCloud(recipes) {
+  if (state.syncInProgress) return;
+  state.syncInProgress = true;
+
+  try {
+    for (const recipe of recipes) {
+      await writeRecipeToCloud(recipe, false);
+    }
+    setSyncStatus("Sincronizado con Firebase.");
+  } catch (error) {
+    console.error(error);
+    setSyncStatus("Hay recetas guardadas en este movil pendientes de subir.");
+  } finally {
+    state.syncInProgress = false;
+  }
+}
+
+async function writeRecipeToCloud(recipe, showErrors = true) {
+  try {
+    const { doc, setDoc } = state.firebase;
+    await setDoc(doc(state.db, "cookbooks", state.cookbookId, "recipes", recipe.id), recipe);
+  } catch (error) {
+    console.error(error);
+    if (showErrors) {
+      setSyncStatus("Guardada en este movil. Pendiente de sincronizar con Firebase.");
+    }
+    throw error;
+  }
+}
+
+function mergeRecipes(localRecipes, cloudRecipes) {
+  const byId = new Map();
+
+  [...localRecipes, ...cloudRecipes].forEach((recipe) => {
+    if (!recipe?.id) return;
+    const current = byId.get(recipe.id);
+    byId.set(recipe.id, pickNewestRecipe(current, recipe));
+  });
+
+  return sortRecipes(Array.from(byId.values()));
+}
+
+function pickNewestRecipe(a, b) {
+  if (!a) return b;
+  if (!b) return a;
+  return dateValue(b.updatedAt || b.createdAt) >= dateValue(a.updatedAt || a.createdAt) ? b : a;
+}
+
+async function connectGoogleDrive() {
+  const config = driveConfig();
+  if (!config.folderId || !config.clientId) {
+    setDriveStatus("Configura el clientId de Google Drive en firebase-config.js.");
+    return;
+  }
+
+  try {
+    await loadGoogleIdentity();
+    if (!state.drive.tokenClient) {
+      state.drive.tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: config.clientId,
+        scope: driveScope,
+        callback: async (response) => {
+          if (response.error) {
+            setDriveStatus("No se pudo conectar con Google Drive.");
+            return;
+          }
+
+          state.drive.accessToken = response.access_token;
+          state.drive.ready = true;
+          renderDriveStatus();
+          await refreshFromDrive(true);
+        }
+      });
+    }
+
+    state.drive.tokenClient.requestAccessToken({ prompt: state.drive.accessToken ? "" : "consent" });
+  } catch (error) {
+    console.error(error);
+    setDriveStatus("Google Drive no esta disponible ahora mismo.");
+  }
+}
+
+function loadGoogleIdentity() {
+  if (window.google?.accounts?.oauth2) return Promise.resolve();
+
+  return new Promise((resolve, reject) => {
+    const existing = document.querySelector('script[data-google-identity="true"]');
+    if (existing) {
+      existing.addEventListener("load", resolve, { once: true });
+      existing.addEventListener("error", reject, { once: true });
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    script.dataset.googleIdentity = "true";
+    script.onload = resolve;
+    script.onerror = reject;
+    document.head.append(script);
+  });
+}
+
+async function refreshFromDrive(uploadLocalAfterMerge = false) {
+  if (!state.drive.ready || state.drive.syncing) return;
+
+  state.drive.syncing = true;
+  setDriveStatus("Leyendo JSON de Drive...");
+
+  try {
+    const localRecipes = [...state.recipes];
+    const driveRecipes = await loadRecipesFromDrive();
+    const driveById = new Map(driveRecipes.map((recipe) => [recipe.id, recipe]));
+    const pendingLocalRecipes = localRecipes.filter((recipe) => {
+      if (!recipe?.id) return false;
+      const driveRecipe = driveById.get(recipe.id);
+      return !driveRecipe || dateValue(recipe.updatedAt || recipe.createdAt) > dateValue(driveRecipe.updatedAt || driveRecipe.createdAt);
+    });
+
+    state.recipes = mergeRecipes(localRecipes, driveRecipes);
+    saveLocalRecipes();
+    renderAll();
+
+    if (uploadLocalAfterMerge && pendingLocalRecipes.length) {
+      setDriveStatus(`Subiendo ${pendingLocalRecipes.length} receta(s) a Drive...`);
+      for (const recipe of pendingLocalRecipes) {
+        await writeRecipeToDrive(recipe);
+      }
+    }
+
+    setDriveStatus(`Drive conectado. ${state.recipes.length} receta(s) disponibles.`);
+    setSyncStatus("Sincronizado con Google Drive.");
+  } catch (error) {
+    console.error(error);
+    setDriveStatus("No se pudieron leer los JSON de Drive.");
+  } finally {
+    state.drive.syncing = false;
+  }
+}
+
+async function loadRecipesFromDrive() {
+  const files = await listDriveJsonFiles();
+  const recipes = [];
+  state.drive.fileIds = new Map();
+
+  for (const file of files) {
+    try {
+      const content = await driveRequest(`https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`);
+      const importedRecipes = recipesFromDrivePayload(content);
+      importedRecipes.forEach((recipe) => {
+        recipes.push(recipe);
+        state.drive.fileIds.set(recipe.id, file.id);
+      });
+    } catch (error) {
+      console.warn(`No se pudo importar ${file.name}`, error);
+    }
+  }
+
+  return recipes;
+}
+
+async function listDriveJsonFiles() {
+  const query = [
+    `'${driveConfig().folderId}' in parents`,
+    "trashed = false",
+    "(mimeType = 'application/json' or name contains '.json')"
+  ].join(" and ");
+  const params = new URLSearchParams({
+    q: query,
+    fields: "files(id,name,modifiedTime)",
+    pageSize: "1000",
+    supportsAllDrives: "true",
+    includeItemsFromAllDrives: "true"
+  });
+
+  const result = await driveRequest(`https://www.googleapis.com/drive/v3/files?${params}`);
+  return result.files || [];
+}
+
+function recipesFromDrivePayload(payload) {
+  const items = Array.isArray(payload) ? payload : (Array.isArray(payload.recipes) ? payload.recipes : [payload]);
+  return items
+    .map(normalizeImportedRecipe)
+    .filter((recipe) => recipe.id && recipe.title);
+}
+
+async function exportRecipesToDrive(recipes, showStatus = true) {
+  if (!state.drive.ready || state.drive.syncing) {
+    if (showStatus) setDriveStatus("Conecta Google Drive primero.");
+    return;
+  }
+
+  state.drive.syncing = true;
+  if (showStatus) setDriveStatus(`Subiendo ${recipes.length} receta(s) a Drive...`);
+
+  try {
+    for (const recipe of recipes) {
+      await writeRecipeToDrive(recipe);
+    }
+    if (showStatus) setDriveStatus(`Drive actualizado. ${recipes.length} receta(s) subida(s).`);
+  } catch (error) {
+    console.error(error);
+    setDriveStatus("No se pudieron subir todas las recetas a Drive.");
+  } finally {
+    state.drive.syncing = false;
+  }
+}
+
+async function writeRecipeToDrive(recipe) {
+  if (!state.drive.ready) return;
+
+  const fileId = state.drive.fileIds.get(recipe.id);
+  const metadata = {
+    name: `${recipe.id}.json`,
+    mimeType: "application/json",
+    ...(fileId ? {} : { parents: [driveConfig().folderId] })
+  };
+  const body = createDriveMultipartBody(metadata, JSON.stringify(recipe, null, 2));
+  const url = fileId
+    ? `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart&supportsAllDrives=true`
+    : "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true";
+  const response = await fetch(url, {
+    method: fileId ? "PATCH" : "POST",
+    headers: {
+      Authorization: `Bearer ${state.drive.accessToken}`,
+      "Content-Type": body.contentType
+    },
+    body: body.payload
+  });
+
+  if (!response.ok) throw new Error(await response.text());
+  const savedFile = await response.json();
+  state.drive.fileIds.set(recipe.id, savedFile.id);
+}
+
+async function deleteRecipeFromDrive(recipeId) {
+  const fileId = state.drive.fileIds.get(recipeId);
+  if (!fileId) return;
+
+  const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?supportsAllDrives=true`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${state.drive.accessToken}` }
+  });
+
+  if (!response.ok) throw new Error(await response.text());
+  state.drive.fileIds.delete(recipeId);
+}
+
+function createDriveMultipartBody(metadata, json) {
+  const boundary = `recetario_${crypto.randomUUID().replace(/-/g, "")}`;
+  const payload = [
+    `--${boundary}`,
+    "Content-Type: application/json; charset=UTF-8",
+    "",
+    JSON.stringify(metadata),
+    `--${boundary}`,
+    "Content-Type: application/json; charset=UTF-8",
+    "",
+    json,
+    `--${boundary}--`
+  ].join("\r\n");
+
+  return {
+    contentType: `multipart/related; boundary=${boundary}`,
+    payload
+  };
+}
+
+async function driveRequest(url, options = {}) {
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      ...(options.headers || {}),
+      Authorization: `Bearer ${state.drive.accessToken}`
+    }
+  });
+
+  if (!response.ok) throw new Error(await response.text());
+  return response.json();
+}
+
 async function runOcr() {
   const file = $("#photoInput").files[0];
   if (!file) {
@@ -590,6 +924,7 @@ function openSettings() {
     ? "Firebase esta conectado. Las recetas se sincronizan usando el codigo compartido."
     : "Firebase no esta configurado. Ahora mismo las recetas solo viven en este navegador.";
   renderBackupStatus();
+  renderDriveStatus();
   $("#settingsDialog").showModal();
 }
 
@@ -634,6 +969,32 @@ function renderBackupStatus() {
   status.textContent = lastBackup
     ? `Ultima copia exportada: ${formatDateTime(lastBackup)}.`
     : "Todavia no se ha exportado una copia en este navegador.";
+}
+
+function renderDriveStatus() {
+  const config = driveConfig();
+  $("#driveConnectButton")?.classList.toggle("hidden", state.drive.ready);
+  $("#driveRefreshButton")?.classList.toggle("hidden", !state.drive.ready);
+  $("#driveExportButton")?.classList.toggle("hidden", !state.drive.ready);
+
+  if (!config.folderId) {
+    setDriveStatus("Configura el folderId de Google Drive.");
+    return;
+  }
+
+  if (!config.clientId) {
+    setDriveStatus("Falta el clientId de Google Drive.");
+    return;
+  }
+
+  setDriveStatus(state.drive.ready
+    ? `Drive conectado. Carpeta: ${config.folderId}.`
+    : "Drive preparado. Conecta para leer y guardar JSON.");
+}
+
+function setDriveStatus(text) {
+  const status = $("#driveStatus");
+  if (status) status.textContent = text;
 }
 
 function normalizeImportedRecipe(recipe) {

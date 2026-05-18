@@ -16,6 +16,7 @@ App movil para guardar recetas, organizarlas por categorias y etiquetas, sincron
 - Importacion desde link cuando la web lo permite; si no, permite pegar el texto.
 - Aviso de posible duplicado por nombre o link.
 - Exportacion e importacion de copia JSON.
+- Sincronizacion con Google Drive como archivos JSON, uno por receta, cuando se configura `RECETARIO_DRIVE_CONFIG`.
 - Ayuda para instalar la app en iPhone desde ajustes.
 - Modo local sin configurar nada.
 - Sincronizacion con Firebase cuando se rellena `firebase-config.js`.
@@ -61,3 +62,28 @@ Para guardar un PDF: abre una receta, pulsa `PDF` y en el dialogo del movil elig
 Para crear recetas desde cualquier chat sin API, usa `PLANTILLA_IMPORTAR_RECETAS.md`. El chat debe devolverte un JSON; despues entra en `Anadir > Importar`, pega el JSON, revisa los campos y guarda.
 
 Para instalarlo en iPhone: abre la app en Safari, pulsa compartir y elige `Anadir a pantalla de inicio`. Si el icono no cambia, borra el acceso antiguo y vuelve a anadirlo.
+
+## Configurar Google Drive con JSON
+
+La app puede guardar cada receta como un archivo `id.json` dentro de una carpeta de Drive. Solo lee archivos JSON; documentos como `.docx` quedan ignorados. La carpeta queda fijada en `firebase-config.js`:
+
+```js
+window.RECETARIO_DRIVE_CONFIG = {
+  folderId: "1iOIk142KsM7QitqasUgFItlOTbpk16yc",
+  clientId: "TU_CLIENT_ID_DE_GOOGLE.apps.googleusercontent.com"
+};
+```
+
+Pasos:
+
+1. Entra en <https://console.cloud.google.com/>.
+2. Crea o abre un proyecto.
+3. Activa `Google Drive API`.
+4. Configura la pantalla de consentimiento OAuth.
+5. Crea un `OAuth client ID` de tipo `Web application`.
+6. En `Authorized JavaScript origins`, anade `https://ruizherrero1.github.io`.
+7. Copia el client ID en `firebase-config.js`.
+8. Publica la app.
+9. En la app, entra en `Ajustes > Conectar Drive`.
+
+Si la app esta en modo `Testing`, anade como usuarios de prueba las cuentas de Google que vayan a usar el recetario.
