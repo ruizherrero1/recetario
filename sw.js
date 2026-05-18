@@ -1,9 +1,10 @@
-const CACHE_NAME = "recetario-v19";
+const CACHE_NAME = "recetario-v20";
 const ASSETS = [
   "./",
   "./index.html",
   "./styles.css",
   "./app.js",
+  "./app-fix.js",
   "./import-recipe.js",
   "./drive-sync.js",
   "./apple-touch-icon.png",
@@ -33,13 +34,38 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
   if (url.origin !== location.origin) return;
 
-  if (event.request.mode === "navigate" || url.pathname.endsWith("/firebase-config.js")) {
+  if (event.request.mode === "navigate") {
+    event.respondWith(indexWithFix(event.request));
+    return;
+  }
+
+  if (url.pathname.endsWith("/firebase-config.js")) {
     event.respondWith(networkFirst(event.request));
     return;
   }
 
   event.respondWith(cacheFirst(event.request));
 });
+
+async function indexWithFix(request) {
+  const response = await networkFirst(request);
+  const type = response.headers.get("content-type") || "";
+  if (!type.includes("text/html")) return response;
+
+  const html = await response.text();
+  const fixed = html.includes("app-fix.js")
+    ? html
+    : html.replace(
+      '<script type="module" src="app.js"></script>',
+      '<script src="./app-fix.js"></script>\n<script type="module" src="app.js"></script>'
+    );
+
+  return new Response(fixed, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: response.headers
+  });
+}
 
 async function networkFirst(request) {
   try {
