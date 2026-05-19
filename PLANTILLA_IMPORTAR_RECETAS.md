@@ -18,18 +18,23 @@ Reglas:
 - Si vas a guardar la receta como archivo en Drive, el nombre del archivo debe ser exactamente el `id` con extension `.json`. Ejemplo: `pollo_asado.json`.
 - Convierte ingredientes en una lista, un ingrediente por elemento.
 - Convierte la preparacion en texto claro con pasos separados por saltos de linea.
-- Usa categorias amplias y utiles. Una receta puede tener varias categorias.
+- Usa categorias amplias y utiles en el campo `categories`. Una receta puede tener varias.
+- Asigna al menos una carpeta en el campo `carpetas`. Usa solo valores del listado disponible (ver abajo). Puedes asignar mas de una si tiene sentido.
 - Usa etiquetas cortas para busqueda.
 - Manten el idioma en espanol.
 - No inventes ingredientes importantes que no aparezcan.
 - Si el contenido viene de una web, rellena `sourceUrl` con el link original.
 - Si el contenido no viene de una web, deja `sourceUrl` como "".
 
+Listado de carpetas disponibles (usa exactamente estos valores):
+Carne, Pescado, Mariscos, Verduras, Arroz, Pasta, Legumbres, Sopas y cremas, Huevos, Bocadillos, Tapas y aperitivos, Postres, Reposteria, Bebidas, Salsas
+
 Formato exacto:
 {
   "id": "",
   "title": "",
   "categories": [],
+  "carpetas": [],
   "time": "",
   "tags": [],
   "ingredients": [],
@@ -49,6 +54,7 @@ Contenido a convertir:
   "id": "tortilla_de_patatas",
   "title": "Tortilla de patatas",
   "categories": ["Cena", "Comida", "Tradicional"],
+  "carpetas": ["Huevos"],
   "time": "35 min",
   "tags": ["sarten", "huevo", "patata"],
   "ingredients": [
@@ -78,7 +84,8 @@ Contenido a convertir:
 
 - `id`: identificador obligatorio recomendado para sincronizar. Usa minusculas, sin tildes, sin espacios y con guiones bajos. Debe coincidir con el nombre del archivo si lo guardas en Drive: `id.json`.
 - `title`: texto obligatorio recomendado.
-- `categories`: lista de categorias. Puede tener varias.
+- `categories`: lista de categorias libres para busqueda y filtrado en la pestana Recetas. Puede tener varias.
+- `carpetas`: lista de carpetas para clasificar la receta en la pestana Carpetas. Debe contener al menos un valor del listado oficial. Puede tener mas de uno si tiene sentido. Valores disponibles: `Carne`, `Pescado`, `Mariscos`, `Verduras`, `Arroz`, `Pasta`, `Legumbres`, `Sopas y cremas`, `Huevos`, `Bocadillos`, `Tapas y aperitivos`, `Postres`, `Reposteria`, `Bebidas`, `Salsas`.
 - `time`: texto libre, por ejemplo `25 min`.
 - `tags`: lista de etiquetas cortas.
 - `ingredients`: lista de ingredientes.
