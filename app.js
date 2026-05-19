@@ -5,6 +5,7 @@ const state = {
   cookbookId: "",
   recipes: [],
   activeRecipeId: "",
+  folderFilter: "",
   sortMode: localStorage.getItem("recetario:sortMode") || "updatedDesc",
   drive: {
     accessToken: "",
@@ -47,6 +48,39 @@ const CARD_IMG_POSTRE = `data:image/svg+xml,${encodeURIComponent(`
   <ellipse cx="192" cy="66" rx="10" ry="15" fill="#4d7c5e"/>
 </svg>`)}`;
 
+const CARPETAS = [
+  { id: "Carne", color: "#d4613a", bg: "#fdf0eb",
+    svg: `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="20" cy="11" r="8"/><path d="M14 17L5 26"/><circle cx="4.5" cy="26.5" r="2.5" fill="currentColor" stroke="none"/></svg>` },
+  { id: "Pescado", color: "#3a85c4", bg: "#e8f3fd",
+    svg: `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16C9 10 15 7 22 9C28 11 28 16 28 16C28 16 28 21 22 23C15 25 9 22 7 16Z"/><path d="M7 16L2 11M7 16L2 21"/><circle cx="24" cy="13.5" r="1.5" fill="currentColor" stroke="none"/></svg>` },
+  { id: "Mariscos", color: "#3ab0a0", bg: "#e0f5f2",
+    svg: `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 10Q10 6 16 10Q22 14 28 10"/><path d="M4 16Q10 12 16 16Q22 20 28 16"/><path d="M4 22Q10 18 16 22Q22 26 28 22"/></svg>` },
+  { id: "Verduras", color: "#4d9e5a", bg: "#e5f5ea",
+    svg: `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 27C16 27 6 20 6 13A10 10 0 0 1 26 13C26 20 16 27 16 27Z"/><line x1="16" y1="27" x2="16" y2="14"/><path d="M16 22L11 18"/><path d="M16 19L21 15"/></svg>` },
+  { id: "Arroz", color: "#e09040", bg: "#fdf5e8",
+    svg: `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 14H26L24 27H8Z"/><path d="M4 14Q16 5 28 14"/></svg>` },
+  { id: "Pasta", color: "#c04e22", bg: "#f5e8e3",
+    svg: `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 17H26L24 27H8Z"/><line x1="4" y1="17" x2="28" y2="17"/><path d="M10 13Q11 10 10 7"/><path d="M16 12Q17 9 16 6"/><path d="M22 13Q23 10 22 7"/></svg>` },
+  { id: "Legumbres", color: "#9b59b6", bg: "#f3e8f8",
+    svg: `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="16" cy="16" r="12" stroke-dasharray="4 3"/><circle cx="11" cy="16" r="3.5" fill="currentColor" stroke="none"/><circle cx="21" cy="16" r="3.5" fill="currentColor" stroke="none"/></svg>` },
+  { id: "Sopas y cremas", color: "#4d9e7a", bg: "#e0f5ec",
+    svg: `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 18H27L25 28H7Z"/><line x1="3" y1="18" x2="29" y2="18"/><path d="M10 14Q12 11 10 8"/><path d="M16 13Q18 10 16 7"/><path d="M22 14Q24 11 22 8"/></svg>` },
+  { id: "Huevos", color: "#e0a83a", bg: "#fdf6e3",
+    svg: `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4C10 4 7 10 7 17A9 9 0 0 0 25 17C25 10 22 4 16 4Z"/></svg>` },
+  { id: "Bocadillos", color: "#c07a3a", bg: "#f5ede3",
+    svg: `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12C3 8 7 6 16 6C25 6 29 8 29 12V14H3Z"/><rect x="3" y="14" width="26" height="5" rx="0"/><path d="M3 19H29V22C29 26 25 26 16 26C7 26 3 26 3 22Z"/></svg>` },
+  { id: "Tapas y aperitivos", color: "#e0587a", bg: "#fde8ef",
+    svg: `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><ellipse cx="16" cy="22" rx="13" ry="4"/><circle cx="9" cy="15" r="3" fill="currentColor" stroke="none"/><circle cx="16" cy="13" r="3" fill="currentColor" stroke="none"/><circle cx="23" cy="15" r="3" fill="currentColor" stroke="none"/></svg>` },
+  { id: "Postres", color: "#e05870", bg: "#fde8ed",
+    svg: `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 25L16 8L25 25Z"/><line x1="7" y1="25" x2="25" y2="25"/><circle cx="12" cy="21" r="2" fill="currentColor" stroke="none"/><circle cx="16" cy="19" r="2" fill="currentColor" stroke="none"/><circle cx="20" cy="21" r="2" fill="currentColor" stroke="none"/><line x1="15" y1="8" x2="15" y2="4"/><circle cx="15" cy="3" r="1.5" fill="currentColor" stroke="none"/></svg>` },
+  { id: "Repostería", color: "#3a3a4a", bg: "#eaeaee",
+    svg: `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" y1="5" x2="10" y2="27"/><path d="M7 5V13C7 13 7 16 10 16C13 16 13 13 13 13V5"/><line x1="22" y1="5" x2="22" y2="27"/><path d="M18 5L22 10L26 5"/></svg>` },
+  { id: "Bebidas", color: "#3a5bd9", bg: "#e8edfd",
+    svg: `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 5H22L19 18C19 22 18 24 16 24C14 24 13 22 13 18Z"/><line x1="10" y1="5" x2="22" y2="5"/><line x1="16" y1="24" x2="16" y2="28"/><line x1="11" y1="28" x2="21" y2="28"/></svg>` },
+  { id: "Salsas", color: "#3a9e8c", bg: "#e0f3f1",
+    svg: `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4C16 4 5 15 5 21A11 11 0 0 0 27 21C27 15 16 4 16 4Z"/><path d="M11 23C11 23 12 26 16 26"/></svg>` },
+];
+
 bindEvents();
 
 if ("serviceWorker" in navigator) {
@@ -68,7 +102,7 @@ function bindEvents() {
   $("#cookbookCode")?.addEventListener("keydown", (event) => {
     if (event.key === "Enter") unlock();
   });
-  $("#backButton")?.addEventListener("click", () => showView("listView"));
+  $("#backButton")?.addEventListener("click", handleBack);
   $("#settingsButton")?.addEventListener("click", openSettings);
   $("#changeCodeButton")?.addEventListener("click", changeCode);
   $("#exportButton")?.addEventListener("click", exportBackup);
@@ -95,7 +129,22 @@ function bindEvents() {
   $("#startVoiceButton")?.addEventListener("click", startVoice);
   $("#stopVoiceButton")?.addEventListener("click", stopVoice);
   $("#parseVoiceButton")?.addEventListener("click", () => fillFormFromText($("#voiceText")?.value || ""));
-  $$(".nav-button").forEach((button) => button.addEventListener("click", () => showView(button.dataset.view)));
+  $$(".nav-button").forEach((button) => button.addEventListener("click", () => {
+    const view = button.dataset.view;
+    if (view === "listView" || view === "foldersView") state.folderFilter = "";
+    showView(view);
+    if (view === "listView") renderList();
+  }));
+
+  const picker = $("#carpetasPicker");
+  if (picker) {
+    picker.innerHTML = CARPETAS.map((c) =>
+      `<label class="carpeta-chip" style="--chip-color:${c.color};--chip-bg:${c.bg}">
+        <input type="checkbox" name="carpetas" value="${escapeAttr(c.id)}">
+        <span>${escapeHtml(c.id)}</span>
+      </label>`
+    ).join("");
+  }
   $$(".mode-tab").forEach((button) => button.addEventListener("click", () => setMode(button.dataset.mode)));
   window.addEventListener("beforeprint", () => showView("detailView", false));
   if ($("#sortSelect")) $("#sortSelect").value = state.sortMode;
@@ -184,6 +233,7 @@ async function saveRecipeFromForm(event) {
   const recipe = {
     id: editingId || uniqueRecipeId(title),
     title,
+    carpetas: $$('input[name="carpetas"]:checked').map((cb) => cb.value),
     categories: splitList($("#categoriesInput").value),
     tags: splitList($("#tagsInput").value),
     time: $("#timeInput").value.trim(),
@@ -206,6 +256,7 @@ async function saveRecipeFromForm(event) {
 function renderAll() {
   renderCategoryFilter();
   renderList();
+  renderFoldersView();
   if (state.activeRecipeId) renderDetail(state.activeRecipeId);
 }
 
@@ -221,9 +272,28 @@ function renderCategoryFilter() {
 function renderList() {
   const list = $("#recipesList");
   if (!list) return;
+
+  const folderHeader = $("#folderHeader");
+  if (folderHeader) {
+    if (state.folderFilter) {
+      const carpeta = CARPETAS.find((c) => c.id === state.folderFilter);
+      const count = state.recipes.filter((r) => (r.carpetas || []).includes(state.folderFilter)).length;
+      folderHeader.innerHTML = `
+        <div class="folder-header-content" style="--folder-color:${carpeta?.color || "var(--brand)"}">
+          <span class="folder-header-icon">${carpeta?.svg || ""}</span>
+          <span class="folder-header-name">${escapeHtml(state.folderFilter)}</span>
+          <span class="folder-header-count">${count} receta${count !== 1 ? "s" : ""}</span>
+        </div>`;
+      folderHeader.classList.remove("hidden");
+    } else {
+      folderHeader.classList.add("hidden");
+    }
+  }
+
   const query = normalize($("#searchInput")?.value || "");
   const category = $("#categoryFilter")?.value || "";
   const filtered = state.recipes.filter((recipe) => {
+    if (state.folderFilter && !(recipe.carpetas || []).includes(state.folderFilter)) return false;
     const haystack = normalize([
       recipe.title,
       recipe.time,
@@ -238,7 +308,8 @@ function renderList() {
   });
 
   list.innerHTML = sortRecipes(filtered).map(recipeCard).join("");
-  $("#emptyState")?.classList.toggle("hidden", state.recipes.length > 0);
+  const isEmpty = state.folderFilter ? filtered.length === 0 : state.recipes.length === 0;
+  $("#emptyState")?.classList.toggle("hidden", !isEmpty);
   list.querySelectorAll(".recipe-card").forEach((card) => {
     card.addEventListener("click", () => openRecipe(card.dataset.id));
   });
@@ -311,6 +382,7 @@ function editRecipe(recipeId) {
   $("#notesInput").value = recipe.notes || "";
   $("#recipeUrl").value = recipe.sourceUrl || "";
   if ($("#sourceUrlInput")) $("#sourceUrlInput").value = recipe.sourceUrl || "";
+  $$('input[name="carpetas"]').forEach((cb) => { cb.checked = (recipe.carpetas || []).includes(cb.value); });
   $("#cancelEditButton")?.classList.remove("hidden");
   showView("addView");
 }
@@ -318,6 +390,7 @@ function editRecipe(recipeId) {
 function resetForm() {
   $("#recipeForm")?.reset();
   $("#editingId").value = "";
+  $$('input[name="carpetas"]').forEach((cb) => { cb.checked = false; });
   $("#cancelEditButton")?.classList.add("hidden");
   setMode("manual");
 }
@@ -325,9 +398,46 @@ function resetForm() {
 function showView(viewId, updateNav = true) {
   $$(".view").forEach((view) => view.classList.toggle("active", view.id === viewId));
   if (updateNav) {
-    $$(".nav-button").forEach((button) => button.classList.toggle("active", button.dataset.view === viewId));
+    const activeNav = (viewId === "listView" && state.folderFilter) ? "foldersView" : viewId;
+    $$(".nav-button").forEach((btn) => btn.classList.toggle("active", btn.dataset.view === activeNav));
   }
-  $("#backButton")?.classList.toggle("hidden", viewId !== "detailView");
+  const showBack = viewId === "detailView" || (viewId === "listView" && Boolean(state.folderFilter));
+  $("#backButton")?.classList.toggle("hidden", !showBack);
+  if (viewId === "foldersView") renderFoldersView();
+}
+
+function handleBack() {
+  if (state.activeRecipeId) {
+    state.activeRecipeId = "";
+    showView("listView");
+  } else if (state.folderFilter) {
+    state.folderFilter = "";
+    showView("foldersView");
+  } else {
+    showView("listView");
+  }
+}
+
+function renderFoldersView() {
+  const grid = $("#foldersGrid");
+  if (!grid) return;
+  grid.innerHTML = CARPETAS.map((carpeta) => {
+    const count = state.recipes.filter((r) => (r.carpetas || []).includes(carpeta.id)).length;
+    return `
+      <button class="folder-card" data-folder="${escapeAttr(carpeta.id)}"
+        style="--folder-color:${carpeta.color};--folder-bg:${carpeta.bg}">
+        <div class="folder-icon">${carpeta.svg}</div>
+        <span class="folder-name">${escapeHtml(carpeta.id)}</span>
+        ${count ? `<span class="folder-count">${count}</span>` : ""}
+      </button>`;
+  }).join("");
+  grid.querySelectorAll(".folder-card").forEach((card) => {
+    card.addEventListener("click", () => {
+      state.folderFilter = card.dataset.folder;
+      renderList();
+      showView("listView");
+    });
+  });
 }
 
 function setMode(mode) {
@@ -838,9 +948,11 @@ function normalizeImportedRecipe(recipe, fallbackId = "") {
   const title = String(recipe?.title || recipe?.nombre || recipe?.name || "").trim();
   const rawId = String(recipe?.id || "").trim();
   const preferredId = rawId && !GENERATED_ID.test(rawId) ? slugify(rawId) : slugify(title) || slugify(fallbackId) || "receta";
+  const allCarpetaIds = CARPETAS.map((c) => c.id);
   return {
     id: preferredId,
     title,
+    carpetas: normalizeList(recipe?.carpetas || recipe?.folders || []).filter((c) => allCarpetaIds.includes(c)),
     categories: normalizeList(recipe?.categories || recipe?.categorias || recipe?.category || recipe?.categoria),
     tags: normalizeList(recipe?.tags || recipe?.etiquetas),
     time: String(recipe?.time || recipe?.tiempo || "").trim(),

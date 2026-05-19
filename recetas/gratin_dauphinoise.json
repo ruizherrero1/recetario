@@ -1,0 +1,21 @@
+{
+  "id": "gratin_dauphinoise",
+  "title": "Gratin Dauphinoise",
+  "carpetas": ["Verduras"],
+  "categories": ["Guarnición", "Francesa", "Patatas"],
+  "time": "40-45 min",
+  "tags": ["patata", "gratinado", "queso", "horno"],
+  "ingredients": [
+    "2-3 patatas grandes",
+    "Queso rallado (emmental o mozzarella para pizza)",
+    "Nata para cocinar",
+    "Sal",
+    "Pimienta",
+    "Mantequilla",
+    "1 diente de ajo",
+    "Nuez moscada"
+  ],
+  "steps": "Cocer las patatas con piel durante 20 minutos, hasta poder pincharlas con facilidad.\nDejar enfriar y pelar.\nMojar el diente de ajo y derretir una cucharada grande de mantequilla.\nMezclar el ajo con la mantequilla y pintar el recipiente donde se va a hornear.\nCortar las patatas en rodajas y colocar una capa en la fuente.\nAñadir sal y queso. Repetir hasta terminar.\nVerter un buen chorro de nata por toda la fuente.\nHornear durante 40 minutos hasta dorar el queso.",
+  "notes": "Añadir nuez moscada al gusto.",
+  "sourceUrl": ""
+}

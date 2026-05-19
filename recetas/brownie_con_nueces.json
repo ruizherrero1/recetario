@@ -1,0 +1,19 @@
+{
+  "id": "brownie_con_nueces",
+  "title": "Brownie con nueces",
+  "carpetas": ["Repostería", "Postres"],
+  "categories": ["Postre", "Chocolate", "Repostería"],
+  "time": "30-35 min",
+  "tags": ["brownie", "chocolate", "nueces", "horno"],
+  "ingredients": [
+    "200 g de chocolate negro para postres",
+    "200 g de mantequilla",
+    "3 huevos",
+    "140 g de azúcar",
+    "80 g de harina de repostería",
+    "Nueces o avellanas troceadas"
+  ],
+  "steps": "Derretir el chocolate con la mantequilla en el microondas poco a poco.\nBatir los huevos con el azúcar hasta que espumen.\nAñadir el chocolate derretido.\nIncorporar la harina tamizada.\nAñadir las nueces o avellanas.\nVerter la mezcla en un molde previamente engrasado.\nHornear 35-40 minutos hasta que la superficie se agriete pero el interior siga jugoso.",
+  "notes": "No debe quedar completamente seco por dentro.",
+  "sourceUrl": ""
+}

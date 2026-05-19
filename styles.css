@@ -485,9 +485,9 @@ input:focus, textarea:focus, select:focus {
   left: 50%;
   bottom: max(10px, env(safe-area-inset-bottom));
   transform: translateX(-50%);
-  width: min(340px, calc(100% - 24px));
+  width: min(420px, calc(100% - 24px));
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr 1fr auto;
   align-items: center;
   gap: 6px;
   border: 1.5px solid var(--soft);
@@ -576,6 +576,122 @@ dialog::backdrop { background: rgba(42,31,23,0.35); backdrop-filter: blur(4px); 
     mask-image: linear-gradient(to right, black calc(100% - 32px), transparent 100%);
   }
 }
+
+/* ── Folders Grid ── */
+.folders-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 4px 0 8px;
+}
+.folder-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 6px 12px;
+  border: 1.5px solid var(--soft);
+  border-radius: var(--rm);
+  background: var(--panel);
+  box-shadow: 0 2px 6px rgba(80,45,20,0.06);
+  transition: transform 0.18s, box-shadow 0.18s, border-color 0.15s;
+  position: relative;
+  cursor: pointer;
+}
+.folder-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(80,45,20,0.12); border-color: var(--folder-color, var(--brand)); }
+.folder-card:active { transform: scale(0.97); }
+.folder-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 13px;
+  background: var(--folder-bg, var(--cream));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--folder-color, var(--brand));
+  flex-shrink: 0;
+}
+.folder-icon svg { width: 26px; height: 26px; display: block; }
+.folder-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ink2);
+  text-align: center;
+  line-height: 1.25;
+  word-break: break-word;
+}
+.folder-count {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--muted);
+  background: var(--cream);
+  border-radius: 999px;
+  padding: 1px 5px;
+  min-width: 18px;
+  text-align: center;
+}
+
+/* ── Folder Header (in list view) ── */
+.folder-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding: 9px 12px;
+  background: var(--panel);
+  border: 1.5px solid var(--soft);
+  border-radius: var(--rm);
+}
+.folder-header-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--folder-color, var(--brand));
+  min-width: 0;
+}
+.folder-header-icon { width: 26px; height: 26px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.folder-header-icon svg { width: 22px; height: 22px; display: block; }
+.folder-header-name { font-size: 1rem; font-weight: 700; color: var(--folder-color, var(--brand)); white-space: nowrap; }
+.folder-header-count { font-size: 0.8rem; color: var(--muted); font-weight: 500; }
+
+/* ── Carpetas Picker (form) ── */
+.carpetas-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 2px 0;
+}
+.carpeta-chip {
+  position: relative;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 11px;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--ink2);
+  background: var(--panel);
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  user-select: none;
+}
+.carpeta-chip input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.carpeta-chip:has(input:checked) {
+  background: var(--chip-bg, var(--blight));
+  border-color: var(--chip-color, var(--brand));
+  color: var(--chip-color, var(--brand));
+}
+.carpeta-chip:hover { border-color: var(--chip-color, var(--brand)); }
 
 /* ── Print ── */
 @media print {

@@ -1,0 +1,26 @@
+{
+  "id": "banana_bread",
+  "title": "Banana Bread",
+  "carpetas": ["Repostería", "Postres"],
+  "categories": ["Postre", "Bizcochos", "Desayuno"],
+  "time": "45-50 min",
+  "tags": ["platano", "banana bread", "chocolate", "bizcocho"],
+  "ingredients": [
+    "3 plátanos maduros",
+    "2 huevos",
+    "3 onzas de chocolate negro 90%",
+    "Coco rallado",
+    "1/2 cucharadita de sal",
+    "1/2 cucharadita de canela",
+    "1 cucharadita de esencia de vainilla",
+    "1/2 cucharadita de jengibre en polvo",
+    "1/3 cup de AOVE",
+    "3/4 cup de harina de trigo de repostería",
+    "1 cucharadita de bicarbonato sódico",
+    "1/2 cup de miel",
+    "1/4 cup de leche o agua"
+  ],
+  "steps": "Batir la miel con el aceite.\nIntegrar la leche y los huevos.\nAñadir los plátanos machacados y la vainilla.\nIncorporar canela, sal, jengibre y bicarbonato.\nAñadir la harina y mezclar bien.\nIncorporar el chocolate y coco rallado.\nHornear hasta que esté cocinado.",
+  "notes": "",
+  "sourceUrl": ""
+}

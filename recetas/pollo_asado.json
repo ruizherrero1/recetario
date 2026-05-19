@@ -1,0 +1,23 @@
+{
+  "id": "pollo_asado",
+  "title": "Pollo Asado",
+  "carpetas": ["Carne"],
+  "categories": ["Carne", "Horno", "Comida"],
+  "time": "1 h 30 min",
+  "tags": ["pollo", "asado", "horno", "verduras"],
+  "ingredients": [
+    "1 pollo entero de corral",
+    "1 patata grande",
+    "1 pimiento rojo",
+    "2 barras de apio",
+    "1 cebolla grande",
+    "5 dientes de ajo",
+    "1 limón",
+    "Romero fresco",
+    "1 chorrito de vino blanco",
+    "3 zanahorias"
+  ],
+  "steps": "Embadurnar el pollo con aceite y sal.\nMeter dentro del pollo limón en trozos y ramas de romero.\nCortar las verduras en trozos grandes y dejar sin pelar los ajos y las zanahorias.\nMeter el pollo al horno junto a los ajos y zanahorias.\nDespués de una hora de cocinado, verter un chorrito de vino blanco y añadir el resto de verduras.\nCocinar 40 minutos más.\nMientras se cocina, regar el pollo con su propia salsa.",
+  "notes": "",
+  "sourceUrl": ""
+}

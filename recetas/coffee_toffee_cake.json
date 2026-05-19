@@ -1,0 +1,30 @@
+{
+  "id": "coffee_toffee_cake",
+  "title": "Coffee Toffee Cake",
+  "carpetas": ["Repostería", "Postres"],
+  "categories": ["Postre", "Bizcochos", "Repostería"],
+  "time": "45 min",
+  "tags": ["cafe", "bizcocho", "toffee", "glaseado"],
+  "ingredients": [
+    "2 huevos",
+    "200 g de azúcar moreno",
+    "170 ml de aceite neutro",
+    "100 ml de café descafeinado",
+    "220 g de harina",
+    "1.5 cucharaditas de levadura",
+    "0.5 cucharadita de bicarbonato",
+    "0.25 cucharadita de canela",
+    "Jengibre molido",
+    "70 ml de nata o yogur",
+    "0.25 cucharadita de sal",
+    "120 g de azúcar moreno (glaseado)",
+    "40 g de mantequilla",
+    "2 cucharadas de café descafeinado",
+    "80 g de nata o yogur",
+    "Vainilla",
+    "Sal"
+  ],
+  "steps": "Batir los huevos con el azúcar.\nAñadir el aceite y el café frío.\nIncorporar harina, levadura, bicarbonato, sal, canela y jengibre.\nMezclar todo suavemente.\nAñadir la nata o yogur.\nHornear a 180 ºC durante 40-45 minutos.\nPara el glaseado, hacer un caramelo con azúcar, mantequilla y café.\nAñadir después la nata o yogur.",
+  "notes": "Comprobar el bizcocho con un palillo.",
+  "sourceUrl": ""
+}

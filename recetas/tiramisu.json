@@ -1,0 +1,19 @@
+{
+  "id": "tiramisu",
+  "title": "Tiramisú",
+  "carpetas": ["Repostería", "Postres"],
+  "categories": ["Postre", "Italiana", "Repostería"],
+  "time": "35 min + reposo",
+  "tags": ["tiramisu", "mascarpone", "cafe", "postre"],
+  "ingredients": [
+    "5 huevos",
+    "500 g de mascarpone",
+    "350 ml de café descafeinado",
+    "160 g de azúcar",
+    "Cacao en polvo",
+    "90 g de harina de repostería"
+  ],
+  "steps": "Sacar los ingredientes de la nevera para que estén a temperatura ambiente.\nSeparar las claras y yemas de 3 huevos.\nMontar las claras a punto de nieve.\nBatir las yemas con 100 g de azúcar hasta que espumen.\nIncorporar las claras con movimientos envolventes.\nAñadir la harina tamizada.\nVerter la mezcla en una bandeja con papel de horno.\nHornear 15-20 minutos hasta dorar y dejar enfriar.\nPreparar el café y dejar enfriar.\nSeparar las claras y yemas de los 2 huevos restantes y montar las claras.\nBatir las yemas con 60 g de azúcar hasta obtener una crema clara.\nAñadir el mascarpone y mezclar.\nIncorporar las claras montadas con movimientos envolventes.\nMontar el tiramisú en una bandeja rectangular mojando los bizcochos en café.\nAlternar capas de bizcocho, crema de mascarpone y cacao.\nTerminar con cacao espolvoreado.\nRefrigerar 2-3 horas antes de servir.",
+  "notes": "Espolvorear el cacao con colador para un acabado más fino.",
+  "sourceUrl": ""
+}

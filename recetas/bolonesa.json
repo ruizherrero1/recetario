@@ -1,0 +1,26 @@
+{
+  "id": "bolonesa",
+  "title": "Boloñesa",
+  "carpetas": ["Pasta", "Salsas", "Carne"],
+  "categories": ["Pasta", "Italiana", "Salsas"],
+  "time": "30-40 min",
+  "tags": ["boloñesa", "pasta", "carne", "tomate"],
+  "ingredients": [
+    "400 g de carne picada de cerdo ibérico",
+    "1 berenjena",
+    "2-3 zanahorias",
+    "1 cebolla grande",
+    "2 dientes de ajo",
+    "Tomate triturado",
+    "Pasta Garofalo",
+    "Queso parmesano",
+    "Salsa Perrins",
+    "Comino",
+    "Pimienta",
+    "Orégano",
+    "Ajo en polvo"
+  ],
+  "steps": "Pochar lentamente la cebolla y el ajo hasta que estén dorados.\nAñadir a mitad del pochado la zanahoria muy picada y cocinar hasta que esté blanda.\nIncorporar la berenjena.\nCuando esté cocinada, añadir el tomate triturado, las especias y un chorrito de salsa Perrins.\nDejar reducir la salsa sin que quede demasiado espesa.\nAñadir agua o más tomate si espesa demasiado.\nCocer la pasta según las instrucciones y mezclar con la salsa.",
+  "notes": "Servir con parmesano rallado.",
+  "sourceUrl": ""
+}

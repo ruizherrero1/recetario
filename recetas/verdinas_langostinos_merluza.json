@@ -1,0 +1,22 @@
+{
+  "id": "verdinas_langostinos_merluza",
+  "title": "Verdinas con langostinos y merluza",
+  "carpetas": ["Legumbres", "Pescado"],
+  "categories": ["Legumbres", "Pescado", "Guisos"],
+  "time": "2-3 horas",
+  "tags": ["verdinas", "langostinos", "merluza", "guiso"],
+  "ingredients": [
+    "400 g de verdinas secas",
+    "1 L de caldo de pescado",
+    "Langostinos congelados o frescos",
+    "Merluza",
+    "Tomate triturado",
+    "1 pimiento verde",
+    "1 cebolla grande",
+    "4-5 dientes de ajo",
+    "2 zanahorias"
+  ],
+  "steps": "Poner las verdinas a remojo 24 horas antes en abundante agua.\nPochar la cebolla, el ajo, el pimiento y la zanahoria durante unos 20 minutos.\nSi el pescado y los langostinos son congelados, descongelarlos antes y reservar.\nAñadir el tomate triturado y sofreír.\nIncorporar las verdinas y el caldo de pescado.\nCocinar a fuego bajo durante 2-3 horas hasta que las verdinas estén tiernas.\nAñadir la merluza y los langostinos en los últimos 10 minutos.\nMover de vez en cuando para evitar que se pegue.",
+  "notes": "Importante que las verdinas no se queden sin agua durante el remojo.",
+  "sourceUrl": ""
+}

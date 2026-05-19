@@ -1,0 +1,23 @@
+{
+  "id": "solomillo_wellington",
+  "title": "Solomillo Wellington",
+  "carpetas": ["Carne"],
+  "categories": ["Carne", "Horno", "Festivo"],
+  "time": "1 hora",
+  "tags": ["solomillo", "wellington", "ternera", "hojaldre"],
+  "ingredients": [
+    "1 kg de solomillo de ternera",
+    "Mostaza de Dijon",
+    "5 champiñones",
+    "2 chalotas",
+    "Bacon en lonchas muy finas",
+    "1 lámina de hojaldre",
+    "1 huevo",
+    "Sal",
+    "Pimienta",
+    "Un chorrito de jerez"
+  ],
+  "steps": "Salpimentar el solomillo previamente atemperado.\nMarcar el solomillo en una sartén a fuego alto hasta dorarlo por fuera.\nDejar enfriar ligeramente y pintar con mostaza de Dijon.\nPreparar la duxelle de setas cortando las chalotas y champiñones en brunoise.\nPochar lentamente y añadir un chorrito de jerez a mitad de cocción.\nCocinar hasta que quede muy seco para evitar humedecer el hojaldre.\nExtender la lámina de hojaldre y colocar las lonchas de bacon.\nCubrir el bacon con la duxelle y colocar el solomillo encima.\nEnrollar cuidadosamente el hojaldre.\nCerrar bien los bordes y decorar con recortes de hojaldre.\nPintar con huevo batido.\nHornear a 220 ºC durante unos 25 minutos.",
+  "notes": "El punto interior ideal de la carne es 56-57 ºC. Importante controlar el punto del solomillo y la cocción del hojaldre.",
+  "sourceUrl": ""
+}

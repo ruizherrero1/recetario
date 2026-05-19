@@ -1,0 +1,18 @@
+{
+  "id": "carbonara_originale",
+  "title": "Carbonara Originale",
+  "carpetas": ["Pasta"],
+  "categories": ["Pasta", "Italiana", "Tradicional"],
+  "time": "20 min",
+  "tags": ["carbonara", "pasta", "guanciale", "italiana"],
+  "ingredients": [
+    "Guanciale",
+    "Queso parmesano",
+    "3 yemas de huevo",
+    "1 huevo entero",
+    "Espaguetis Garofalo"
+  ],
+  "steps": "Freír el guanciale cortado en trozos pequeños hasta que quede tostado.\nReservar junto a la grasa soltada.\nCocer la pasta.\nBatir las yemas y el huevo con el queso rallado hasta obtener una mezcla espesa.\nAñadir un poco de agua de cocción de la pasta para aligerar la mezcla.\nImportante: retirar del fuego antes de mezclar.\nMezclar la pasta con el guanciale, la mezcla de huevo y parte de la grasa.",
+  "notes": "No cocinar el huevo directamente al fuego para evitar que cuaje.",
+  "sourceUrl": ""
+}

@@ -1,0 +1,20 @@
+{
+  "id": "tarta_lemon_curd",
+  "title": "Tarta de Lemon Curd",
+  "carpetas": ["Repostería", "Postres"],
+  "categories": ["Postre", "Repostería"],
+  "time": "20-30 min",
+  "tags": ["lemon curd", "limón", "tarta", "postre"],
+  "ingredients": [
+    "Base: 250 g de galletas Digestive o María",
+    "Base: 125 g de mantequilla",
+    "Lemon curd: 200 ml de zumo de limón (~4 limones)",
+    "Lemon curd: Piel de 1 limón (sin parte blanca)",
+    "Lemon curd: 300 g de azúcar (algo menos al gusto)",
+    "Lemon curd: 140 g de mantequilla a temperatura ambiente",
+    "Lemon curd: 4 huevos a temperatura ambiente"
+  ],
+  "steps": "Triturar las galletas y mezclarlas con la mantequilla derretida.\nCubrir la base y paredes del molde compactando bien la mezcla. Reservar en la nevera.\nExprimir los limones y rallar o pelar la parte amarilla de la piel.\nPulverizar el azúcar en Thermomix durante 20 segundos a máxima velocidad.\nAñadir la piel del limón y volver a pulverizar 20 segundos.\nAñadir el zumo de limón, la mantequilla y los huevos.\nBatir 1 minuto a velocidad 2-3.\nProgramar 10 minutos a 80°C en velocidad 2-3.\nVerter la crema sobre la base fría.\nCubrir con film a piel y dejar enfriar antes de refrigerar.\nOpcional: decorar con merengue montando 4 claras con 2 cucharadas de azúcar.\nFlambear el merengue para tostarlo ligeramente.",
+  "notes": "La tarta debe servirse bien fría.\nEl merengue se recomienda hacerlo un par de horas antes de servir.\nDificultad: Fácil",
+  "sourceUrl": ""
+}

@@ -1,0 +1,20 @@
+{
+  "id": "custard_crema_inglesa",
+  "title": "Custard (Crema inglesa)",
+  "carpetas": ["Repostería", "Postres", "Salsas"],
+  "categories": ["Postre", "Cremas", "Repostería"],
+  "time": "25 min",
+  "tags": ["crema", "vainilla", "inglesa", "postre"],
+  "ingredients": [
+    "600 ml de leche entera o semidesnatada",
+    "150 ml de nata para montar",
+    "4 huevos grandes",
+    "80-90 g de azúcar blanco",
+    "35-40 g de maicena",
+    "2 cucharadas de vainilla",
+    "1 pizca de sal"
+  ],
+  "steps": "Calentar en un cazo la leche con la nata y la vainilla sin que hierva.\nBatir en un bol los huevos, el azúcar, la maicena y la sal hasta obtener una mezcla suave.\nVerter lentamente la mezcla caliente sobre los huevos mientras se bate constantemente.\nVolver a pasar toda la mezcla al cazo.\nCocinar removiendo con varillas hasta que espese.\nGuardar en la nevera con papel film tocando la superficie.",
+  "notes": "Cocinar a fuego medio (6-7).",
+  "sourceUrl": ""
+}

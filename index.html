@@ -94,8 +94,15 @@
 
   <main>
 
+    <!-- ─── FOLDERS VIEW ───────────────────────────────────── -->
+    <section id="foldersView" class="view">
+      <div id="foldersGrid" class="folders-grid"></div>
+    </section>
+
     <!-- ─── LIST VIEW ──────────────────────────────────────── -->
     <section id="listView" class="view active">
+
+      <div id="folderHeader" class="folder-header hidden"></div>
 
       <div class="tools-row">
         <div class="search-wrap">
@@ -187,6 +194,11 @@
           </label>
         </div>
 
+        <div class="field">
+          <span>Carpeta(s)</span>
+          <div id="carpetasPicker" class="carpetas-picker"></div>
+        </div>
+
         <label class="field">
           <span>Ingredientes *</span>
           <textarea id="ingredientsInput" name="ingredients" rows="7" required placeholder="Un ingrediente por línea"></textarea>
@@ -221,6 +233,12 @@
 
   <!-- Bottom Nav -->
   <nav class="bottom-nav" aria-label="Navegación principal">
+    <button class="nav-button" data-view="foldersView">
+      <svg width="22" height="22" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4 8C4 6.9 4.9 6 6 6H13L16 10H26C27.1 10 28 10.9 28 12V24C28 25.1 27.1 26 26 26H6C4.9 26 4 25.1 4 24Z"/>
+      </svg>
+      Carpetas
+    </button>
     <button class="nav-button active" data-view="listView">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>

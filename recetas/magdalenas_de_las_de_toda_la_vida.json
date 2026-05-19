@@ -1,0 +1,22 @@
+{
+  "id": "magdalenas_de_las_de_toda_la_vida",
+  "title": "Magdalenas (de las de toda la vida)",
+  "carpetas": ["Repostería"],
+  "categories": ["Postre", "Desayuno", "Repostería"],
+  "time": "20 min + reposo",
+  "tags": ["magdalenas", "desayuno", "vainilla", "limon"],
+  "ingredients": [
+    "260 g de harina de trigo",
+    "5 g de levadura",
+    "1 pizca de sal",
+    "3 huevos enteros",
+    "150 g de azúcar blanco",
+    "190 g de aceite de oliva virgen extra",
+    "1 cucharadita de esencia de vainilla",
+    "Ralladura de 1 limón",
+    "Pepitas de chocolate"
+  ],
+  "steps": "Batir los huevos con el azúcar hasta blanquear.\nAñadir el aceite, la ralladura de limón y la vainilla.\nIncorporar la harina tamizada, la levadura y la sal.\nRefrigerar la masa 25-30 minutos.\nRellenar cápsulas de magdalena.\nEspolvorear azúcar por encima.\nHornear a 200 ºC durante 20 minutos.",
+  "notes": "El reposo en nevera es opcional.",
+  "sourceUrl": ""
+}

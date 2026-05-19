@@ -1,0 +1,31 @@
+{
+  "id": "quiche",
+  "title": "Quiche",
+  "carpetas": ["Huevos"],
+  "categories": ["Salado", "Horno", "Francesa"],
+  "time": "1 h 30 min",
+  "tags": ["quiche", "masa quebrada", "horno", "salado"],
+  "ingredients": [
+    "200 g de harina de trigo",
+    "100 g de mantequilla semiblanda",
+    "Champiñones",
+    "Chalotas o cebolla",
+    "Bacon",
+    "Queso emmental",
+    "Salmón",
+    "Espinacas",
+    "Queso de cabra",
+    "Queso azul",
+    "Manzana o pera",
+    "4 huevos",
+    "200 ml de nata para cocinar",
+    "150 g de queso rallado",
+    "Sal",
+    "Pimienta",
+    "Nuez moscada",
+    "Garbanzos crudos"
+  ],
+  "steps": "Formar un volcán con la harina en un bol.\nAñadir la mantequilla en dados y mezclar con las manos hasta conseguir una masa homogénea.\nNo amasar demasiado para evitar que quede dura.\nHacer una bola y dejar reposar en la nevera durante 30 minutos envuelta en papel film.\nExtender la masa con rodillo y cubrir el molde de quiche.\nPinchar varias veces la base.\nCubrir con garbanzos crudos para evitar que suba.\nHornear la masa sola durante 15 minutos a 180 ºC.\nPreparar el relleno deseado.\nMezclar la base del relleno: huevos, nata, queso rallado, sal, pimienta y nuez moscada.\nRellenar la quiche y hornear 30-40 minutos a 180 ºC hasta que cuaje y se dore por encima.",
+  "notes": "Admite muchos rellenos distintos: champiñones y bacon, salmón y espinacas, queso azul y pera, etc.",
+  "sourceUrl": ""
+}
