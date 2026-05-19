@@ -200,6 +200,20 @@
           <div id="carpetasPicker" class="carpetas-picker"></div>
         </div>
 
+        <div class="field">
+          <span>Foto</span>
+          <div class="photo-field">
+            <div id="recipePhotoPreview" class="photo-preview hidden"></div>
+            <div class="photo-actions">
+              <label class="secondary-button photo-pick-button">
+                <input id="recipePhotoInput" type="file" accept="image/*" hidden>
+                Elegir foto
+              </label>
+              <button id="recipePhotoClear" type="button" class="ghost-button hidden">Quitar</button>
+            </div>
+          </div>
+        </div>
+
         <label class="field">
           <span>Ingredientes *</span>
           <textarea id="ingredientsInput" name="ingredients" rows="7" required placeholder="Un ingrediente por línea"></textarea>
@@ -231,6 +245,22 @@
     </section>
 
   </main>
+
+  <!-- Cook Mode Overlay -->
+  <div id="cookMode" class="cook-mode hidden" aria-hidden="true">
+    <div class="cook-mode-bar">
+      <span id="cookStepCounter" class="cook-step-counter"></span>
+      <button id="cookCloseButton" class="icon-button" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="cook-mode-content">
+      <h2 id="cookRecipeTitle" class="cook-recipe-title"></h2>
+      <div id="cookStepText" class="cook-step-text"></div>
+    </div>
+    <div class="cook-mode-nav">
+      <button id="cookPrevButton" class="secondary-button">← Anterior</button>
+      <button id="cookNextButton" class="primary-button">Siguiente →</button>
+    </div>
+  </div>
 
   <!-- Bottom Nav -->
   <nav class="bottom-nav" aria-label="Navegación principal">

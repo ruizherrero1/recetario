@@ -40,8 +40,11 @@ Formato exacto:
   "ingredients": [],
   "steps": "",
   "notes": "",
-  "sourceUrl": ""
+  "sourceUrl": "",
+  "photo": ""
 }
+
+Nota: deja `photo` como "" — la foto se sube despues desde la propia app, no se rellena en el JSON.
 
 Contenido a convertir:
 [PEGA AQUI EL LINK, TEXTO O DESCRIPCION DE LA FOTO]

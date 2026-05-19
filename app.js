@@ -137,6 +137,11 @@ function bindEvents() {
   });
   $("#recipeForm")?.addEventListener("submit", saveRecipeFromForm);
   $("#cancelEditButton")?.addEventListener("click", resetForm);
+  $("#recipePhotoInput")?.addEventListener("change", handlePhotoPick);
+  $("#recipePhotoClear")?.addEventListener("click", clearRecipePhoto);
+  $("#cookCloseButton")?.addEventListener("click", closeCookMode);
+  $("#cookPrevButton")?.addEventListener("click", () => moveCookStep(-1));
+  $("#cookNextButton")?.addEventListener("click", () => moveCookStep(1));
   $("#runOcrButton")?.addEventListener("click", runOcr);
   $("#importLinkButton")?.addEventListener("click", importFromLink);
   $("#parseTextButton")?.addEventListener("click", () => fillFormFromText($("#pastedRecipeText")?.value || "", $("#recipeUrl")?.value || ""));
@@ -255,6 +260,7 @@ async function saveRecipeFromForm(event) {
     steps: $("#stepsInput").value.trim(),
     notes: $("#notesInput").value.trim(),
     sourceUrl: normalizeUrlForStorage($("#sourceUrlInput")?.value || $("#recipeUrl")?.value),
+    photo: state.editingPhoto !== undefined ? state.editingPhoto : (previous?.photo || ""),
     createdAt: previous?.createdAt || new Date().toISOString()
   };
 
@@ -338,10 +344,13 @@ function recipeCard(recipe) {
   const icon = carpeta
     ? carpeta.svg.replace("<svg ", `<svg width="64" height="64" style="color:${color}" `)
     : `<svg width="64" height="64" viewBox="0 0 32 32" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round"><rect x="4" y="8" width="24" height="18" rx="3"/><path d="M4 12h24"/></svg>`;
+  const imgBlock = recipe.photo
+    ? `<img class="card-img" src="${escapeAttr(recipe.photo)}" alt="${escapeAttr(recipe.title)}" loading="lazy">`
+    : `<div class="card-img-folder" style="background:${bg};">${icon}</div>`;
   return `
     <button class="recipe-card" data-id="${escapeAttr(recipe.id)}">
       <div class="card-img-wrap">
-        <div class="card-img-folder" style="background:${bg};">${icon}</div>
+        ${imgBlock}
         <span class="card-type-badge" style="background:${color};color:#fff;">${label}</span>
       </div>
       <div class="card-body">
@@ -369,8 +378,11 @@ function renderDetail(recipeId) {
   const heroIcon = carpeta
     ? carpeta.svg.replace("<svg ", `<svg width="72" height="72" style="color:${heroColor}" `)
     : "";
+  const heroHtml = recipe.photo
+    ? `<div class="detail-hero detail-hero-photo" style="background-image:url('${escapeAttr(recipe.photo)}');">${carpeta ? `<span class="detail-hero-label" style="background:${heroColor};">${escapeHtml(carpetaId)}</span>` : ""}</div>`
+    : (heroIcon ? `<div class="detail-hero" style="background:${heroBg};">${heroIcon}<span class="detail-hero-label" style="background:${heroColor};">${escapeHtml(carpetaId)}</span></div>` : "");
   detail.innerHTML = `
-    ${heroIcon ? `<div class="detail-hero" style="background:${heroBg};">${heroIcon}<span class="detail-hero-label" style="background:${heroColor};">${escapeHtml(carpetaId)}</span></div>` : ""}
+    ${heroHtml}
     <h2>${escapeHtml(recipe.title)}</h2>
     <div class="detail-line">
       <span class="detail-label">Categoria</span>
@@ -386,11 +398,13 @@ function renderDetail(recipeId) {
     <section class="detail-section"><h3>Receta</h3><div class="steps-text">${escapeHtml(recipe.steps || "")}</div></section>
     ${recipe.notes ? `<section class="detail-section"><h3>Notas</h3><div class="notes-text">${escapeHtml(recipe.notes)}</div></section>` : ""}
     <div class="detail-actions">
+      <button class="primary-button" data-action="cook">🍳 Cocinar</button>
       <button class="secondary-button" data-action="print">PDF</button>
       <button class="secondary-button" data-action="edit">Editar</button>
       <button class="ghost-button" data-action="delete">Eliminar</button>
     </div>
   `;
+  detail.querySelector('[data-action="cook"]')?.addEventListener("click", () => openCookMode(recipe.id));
   detail.querySelector('[data-action="print"]')?.addEventListener("click", () => print());
   detail.querySelector('[data-action="edit"]')?.addEventListener("click", () => editRecipe(recipe.id));
   detail.querySelector('[data-action="delete"]')?.addEventListener("click", () => deleteRecipe(recipe.id));
@@ -410,6 +424,8 @@ function editRecipe(recipeId) {
   $("#recipeUrl").value = recipe.sourceUrl || "";
   if ($("#sourceUrlInput")) $("#sourceUrlInput").value = recipe.sourceUrl || "";
   $$('input[name="carpetas"]').forEach((cb) => { cb.checked = (recipe.carpetas || []).includes(cb.value); });
+  state.editingPhoto = recipe.photo || "";
+  showPhotoPreview(recipe.photo || "");
   $("#cancelEditButton")?.classList.remove("hidden");
   showView("addView");
 }
@@ -418,6 +434,8 @@ function resetForm() {
   $("#recipeForm")?.reset();
   $("#editingId").value = "";
   $$('input[name="carpetas"]').forEach((cb) => { cb.checked = false; });
+  state.editingPhoto = undefined;
+  showPhotoPreview("");
   $("#cancelEditButton")?.classList.add("hidden");
   setMode("manual");
 }
@@ -989,6 +1007,7 @@ function normalizeImportedRecipe(recipe, fallbackId = "") {
       : String(recipe?.steps || recipe?.preparacion || recipe?.["preparacion"] || recipe?.["preparación"] || recipe?.receta || "").trim(),
     notes: String(recipe?.notes || recipe?.notas || "").trim(),
     sourceUrl: normalizeUrlForStorage(recipe?.sourceUrl || recipe?.link || recipe?.url),
+    photo: typeof recipe?.photo === "string" && recipe.photo.startsWith("data:image/") ? recipe.photo : "",
     createdAt: recipe?.createdAt || new Date().toISOString(),
     updatedAt: recipe?.updatedAt || new Date().toISOString()
   };
@@ -1126,4 +1145,111 @@ function escapeHtml(value) {
 
 function escapeAttr(value) {
   return escapeHtml(value).replaceAll("`", "&#096;");
+}
+
+// ─── Recipe Photo ─────────────────────────────────────────
+async function handlePhotoPick(event) {
+  const file = event.target.files?.[0];
+  if (!file) return;
+  try {
+    const compressed = await compressImage(file, 1000, 0.82);
+    state.editingPhoto = compressed;
+    showPhotoPreview(compressed);
+  } catch {
+    alert("No se pudo procesar la imagen. Prueba con otra foto.");
+  }
+}
+
+function clearRecipePhoto() {
+  state.editingPhoto = "";
+  const input = $("#recipePhotoInput");
+  if (input) input.value = "";
+  showPhotoPreview("");
+}
+
+function showPhotoPreview(dataUrl) {
+  const preview = $("#recipePhotoPreview");
+  const clear = $("#recipePhotoClear");
+  if (!preview) return;
+  if (dataUrl) {
+    preview.style.backgroundImage = `url("${dataUrl}")`;
+    preview.classList.remove("hidden");
+    clear?.classList.remove("hidden");
+  } else {
+    preview.style.backgroundImage = "";
+    preview.classList.add("hidden");
+    clear?.classList.add("hidden");
+  }
+}
+
+function compressImage(file, maxSize, quality) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+        const w = Math.round(img.width * scale);
+        const h = Math.round(img.height * scale);
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+// ─── Cook Mode ────────────────────────────────────────────
+let cookState = { steps: [], index: 0, wakeLock: null };
+
+async function openCookMode(recipeId) {
+  const recipe = state.recipes.find((r) => r.id === recipeId);
+  if (!recipe) return;
+  const steps = (recipe.steps || "").split(/\n+/).map((s) => s.trim()).filter(Boolean);
+  if (steps.length === 0) { alert("Esta receta no tiene pasos definidos."); return; }
+  cookState.steps = steps;
+  cookState.index = 0;
+  $("#cookRecipeTitle").textContent = recipe.title;
+  const overlay = $("#cookMode");
+  overlay.classList.remove("hidden");
+  overlay.setAttribute("aria-hidden", "false");
+  renderCookStep();
+  try {
+    if ("wakeLock" in navigator) {
+      cookState.wakeLock = await navigator.wakeLock.request("screen");
+    }
+  } catch {}
+}
+
+function closeCookMode() {
+  const overlay = $("#cookMode");
+  overlay.classList.add("hidden");
+  overlay.setAttribute("aria-hidden", "true");
+  if (cookState.wakeLock) {
+    try { cookState.wakeLock.release(); } catch {}
+    cookState.wakeLock = null;
+  }
+}
+
+function moveCookStep(delta) {
+  const next = cookState.index + delta;
+  if (next < 0 || next >= cookState.steps.length) return;
+  cookState.index = next;
+  renderCookStep();
+}
+
+function renderCookStep() {
+  const total = cookState.steps.length;
+  const i = cookState.index;
+  $("#cookStepCounter").textContent = `Paso ${i + 1} de ${total}`;
+  $("#cookStepText").textContent = cookState.steps[i] || "";
+  $("#cookPrevButton").disabled = i === 0;
+  $("#cookNextButton").disabled = i === total - 1;
 }
