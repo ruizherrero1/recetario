@@ -226,7 +226,19 @@
   <div id="cookMode" class="cook-mode hidden" aria-hidden="true">
     <div class="cook-mode-bar">
       <span id="cookStepCounter" class="cook-step-counter"></span>
-      <button id="cookCloseButton" class="icon-button" aria-label="Cerrar">✕</button>
+      <div class="cook-bar-actions">
+        <button id="cookIngredientsButton" class="cook-bar-button" aria-label="Ver ingredientes" title="Ingredientes">
+          <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M22 4 L26 8 L20 10 L16 6 Z" fill="#4d9e5a" stroke="#3a7a44"/>
+            <path d="M16 6 Q24 8 26 16 L14 28 Q6 26 6 18 Z" fill="#e07a3a" stroke="#b85522"/>
+            <line x1="12" y1="14" x2="15" y2="17"/>
+            <line x1="16" y1="18" x2="19" y2="21"/>
+            <line x1="11" y1="19" x2="14" y2="22"/>
+          </svg>
+          <span>Ingredientes</span>
+        </button>
+        <button id="cookCloseButton" class="icon-button" aria-label="Cerrar">✕</button>
+      </div>
     </div>
     <div class="cook-mode-content">
       <h2 id="cookRecipeTitle" class="cook-recipe-title"></h2>
@@ -236,6 +248,16 @@
       <button id="cookPrevButton" class="secondary-button">← Anterior</button>
       <button id="cookNextButton" class="primary-button">Siguiente →</button>
     </div>
+
+    <!-- Ingredients side panel -->
+    <div id="cookIngredientsPanel" class="cook-ingredients-panel hidden" aria-hidden="true">
+      <div class="cook-ingredients-header">
+        <h3>Ingredientes</h3>
+        <button id="cookIngredientsClose" class="icon-button" aria-label="Cerrar ingredientes">✕</button>
+      </div>
+      <ul id="cookIngredientsList" class="cook-ingredients-list"></ul>
+    </div>
+    <div id="cookIngredientsBackdrop" class="cook-ingredients-backdrop hidden"></div>
   </div>
 
   <!-- Bottom Nav -->

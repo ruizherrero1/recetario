@@ -142,6 +142,9 @@ function bindEvents() {
   $("#cookCloseButton")?.addEventListener("click", closeCookMode);
   $("#cookPrevButton")?.addEventListener("click", () => moveCookStep(-1));
   $("#cookNextButton")?.addEventListener("click", () => moveCookStep(1));
+  $("#cookIngredientsButton")?.addEventListener("click", openIngredientsPanel);
+  $("#cookIngredientsClose")?.addEventListener("click", closeIngredientsPanel);
+  $("#cookIngredientsBackdrop")?.addEventListener("click", closeIngredientsPanel);
   $("#runOcrButton")?.addEventListener("click", runOcr);
   $("#importLinkButton")?.addEventListener("click", importFromLink);
   $("#parseTextButton")?.addEventListener("click", () => fillFormFromText($("#pastedRecipeText")?.value || "", $("#recipeUrl")?.value || ""));
@@ -421,7 +424,6 @@ function editRecipe(recipeId) {
   $("#ingredientsInput").value = (recipe.ingredients || []).join("\n");
   $("#stepsInput").value = recipe.steps || "";
   $("#notesInput").value = recipe.notes || "";
-  $("#recipeUrl").value = recipe.sourceUrl || "";
   if ($("#sourceUrlInput")) $("#sourceUrlInput").value = recipe.sourceUrl || "";
   $$('input[name="carpetas"]').forEach((cb) => { cb.checked = (recipe.carpetas || []).includes(cb.value); });
   state.editingPhoto = recipe.photo || "";
@@ -1207,7 +1209,7 @@ function compressImage(file, maxSize, quality) {
 }
 
 // ─── Cook Mode ────────────────────────────────────────────
-let cookState = { steps: [], index: 0, wakeLock: null };
+let cookState = { steps: [], index: 0, ingredients: [], checked: new Set(), wakeLock: null };
 
 async function openCookMode(recipeId) {
   const recipe = state.recipes.find((r) => r.id === recipeId);
@@ -1216,11 +1218,14 @@ async function openCookMode(recipeId) {
   if (steps.length === 0) { alert("Esta receta no tiene pasos definidos."); return; }
   cookState.steps = steps;
   cookState.index = 0;
+  cookState.ingredients = recipe.ingredients || [];
+  cookState.checked = new Set();
   $("#cookRecipeTitle").textContent = recipe.title;
   const overlay = $("#cookMode");
   overlay.classList.remove("hidden");
   overlay.setAttribute("aria-hidden", "false");
   renderCookStep();
+  renderCookIngredients();
   try {
     if ("wakeLock" in navigator) {
       cookState.wakeLock = await navigator.wakeLock.request("screen");
@@ -1232,10 +1237,51 @@ function closeCookMode() {
   const overlay = $("#cookMode");
   overlay.classList.add("hidden");
   overlay.setAttribute("aria-hidden", "true");
+  closeIngredientsPanel();
   if (cookState.wakeLock) {
     try { cookState.wakeLock.release(); } catch {}
     cookState.wakeLock = null;
   }
+}
+
+function openIngredientsPanel() {
+  $("#cookIngredientsPanel")?.classList.remove("hidden");
+  $("#cookIngredientsBackdrop")?.classList.remove("hidden");
+  $("#cookIngredientsPanel")?.setAttribute("aria-hidden", "false");
+}
+
+function closeIngredientsPanel() {
+  $("#cookIngredientsPanel")?.classList.add("hidden");
+  $("#cookIngredientsBackdrop")?.classList.add("hidden");
+  $("#cookIngredientsPanel")?.setAttribute("aria-hidden", "true");
+}
+
+function renderCookIngredients() {
+  const list = $("#cookIngredientsList");
+  if (!list) return;
+  if (cookState.ingredients.length === 0) {
+    list.innerHTML = `<li class="cook-ingredients-empty">Sin ingredientes definidos.</li>`;
+    $("#cookIngredientsButton")?.classList.add("hidden");
+    return;
+  }
+  $("#cookIngredientsButton")?.classList.remove("hidden");
+  list.innerHTML = cookState.ingredients.map((ing, i) => `
+    <li class="cook-ingredient-item">
+      <label>
+        <input type="checkbox" data-index="${i}" ${cookState.checked.has(i) ? "checked" : ""}>
+        <span class="cook-ingredient-text">${escapeHtml(ing)}</span>
+      </label>
+    </li>
+  `).join("");
+  list.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
+    cb.addEventListener("change", (e) => {
+      const idx = Number(e.target.dataset.index);
+      if (e.target.checked) cookState.checked.add(idx);
+      else cookState.checked.delete(idx);
+      e.target.closest(".cook-ingredient-item")?.classList.toggle("checked", e.target.checked);
+    });
+    if (cb.checked) cb.closest(".cook-ingredient-item")?.classList.add("checked");
+  });
 }
 
 function moveCookStep(delta) {

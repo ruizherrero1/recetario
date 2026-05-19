@@ -584,6 +584,144 @@ input:focus, textarea:focus, select:focus {
   opacity: 0.35;
   cursor: not-allowed;
 }
+
+/* Cook bar actions */
+.cook-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cook-bar-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--cream);
+  border: 1.5px solid var(--soft);
+  border-radius: 999px;
+  padding: 7px 14px 7px 10px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+.cook-bar-button:hover { background: #fff; }
+.cook-bar-button:active { transform: scale(0.96); }
+.cook-bar-button svg { width: 22px; height: 22px; flex-shrink: 0; }
+.cook-bar-button.hidden { display: none; }
+
+/* Ingredients side panel */
+.cook-ingredients-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(40,25,15,0.35);
+  z-index: 1;
+  animation: fadeIn 0.15s ease;
+}
+.cook-ingredients-backdrop.hidden { display: none; }
+.cook-ingredients-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(360px, 100%);
+  background: #fffaf3;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -4px 0 24px rgba(40,25,15,0.18);
+  padding-top: max(0px, env(safe-area-inset-top));
+  padding-bottom: max(0px, env(safe-area-inset-bottom));
+  animation: slideInRight 0.2s ease;
+}
+.cook-ingredients-panel.hidden { display: none; }
+.cook-ingredients-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  border-bottom: 1.5px solid var(--soft);
+}
+.cook-ingredients-header h3 {
+  margin: 0;
+  font-family: var(--disp);
+  font-size: 1.2rem;
+  color: var(--brand);
+}
+.cook-ingredients-list {
+  list-style: none;
+  padding: 12px 8px;
+  margin: 0;
+  overflow-y: auto;
+  flex: 1;
+}
+.cook-ingredient-item {
+  border-radius: var(--rs);
+  transition: background 0.15s;
+}
+.cook-ingredient-item:hover { background: var(--cream); }
+.cook-ingredient-item label {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  cursor: pointer;
+  line-height: 1.45;
+}
+.cook-ingredient-item input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  border: 2px solid var(--brand);
+  border-radius: 6px;
+  flex-shrink: 0;
+  cursor: pointer;
+  position: relative;
+  margin-top: 1px;
+  background: #fff;
+  transition: background 0.15s, border-color 0.15s;
+}
+.cook-ingredient-item input[type="checkbox"]:checked {
+  background: var(--brand);
+  border-color: var(--brand);
+}
+.cook-ingredient-item input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 1px;
+  width: 7px;
+  height: 12px;
+  border: solid #fff;
+  border-width: 0 2.5px 2.5px 0;
+  transform: rotate(45deg);
+}
+.cook-ingredient-text {
+  font-size: 1rem;
+  color: var(--ink);
+  flex: 1;
+}
+.cook-ingredient-item.checked .cook-ingredient-text {
+  text-decoration: line-through;
+  color: var(--muted);
+  opacity: 0.7;
+}
+.cook-ingredients-empty {
+  padding: 24px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 .recipe-detail h2 {
   overflow-wrap: anywhere;
   margin: 0 0 18px;
