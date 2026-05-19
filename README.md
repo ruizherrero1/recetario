@@ -17,6 +17,9 @@ App movil para guardar recetas, organizarlas por categorias y etiquetas, sincron
 - Aviso de posible duplicado por nombre o link.
 - Exportacion e importacion de copia JSON.
 - Sincronizacion con Google Drive como archivos JSON, uno por receta.
+- Estado de sincronizacion con ultimas lecturas, subidas, backups, pendientes y duplicados.
+- Reparacion de duplicados en Drive moviendo copias antiguas a la papelera.
+- Backups automaticos en Drive antes de importaciones, subidas, borrados y reparaciones.
 - Ayuda para instalar la app en iPhone desde ajustes.
 - Modo local sin configurar nada.
 
@@ -50,7 +53,7 @@ Para instalarlo en iPhone: abre la app en Safari, pulsa compartir y elige `Anadi
 
 ## Configurar Google Drive con JSON
 
-La app guarda cada receta como un archivo `id.json` dentro de una carpeta de Drive. Solo lee archivos JSON; documentos como `.docx` quedan ignorados. La carpeta queda fijada en `firebase-config.js`:
+La app guarda cada receta como un archivo `id.json` dentro de una carpeta de Drive. Solo lee archivos JSON de receta; los backups `backup-recetario-*.json` quedan ignorados al sincronizar. La carpeta queda fijada en `drive-config.js`:
 
 ```js
 window.RECETARIO_DRIVE_CONFIG = {
@@ -67,10 +70,10 @@ Pasos:
 4. Configura la pantalla de consentimiento OAuth.
 5. Crea un `OAuth client ID` de tipo `Web application`.
 6. En `Authorized JavaScript origins`, anade `https://ruizherrero1.github.io`.
-7. Copia el client ID en `firebase-config.js`.
+7. Copia el client ID en `drive-config.js`.
 8. Publica la app.
 9. En la app, entra en `Ajustes > Conectar Drive`.
 
 Si la app esta en modo `Testing`, anade como usuarios de prueba las cuentas de Google que vayan a usar el recetario.
 
-Firebase ya no se usa. Drive es el unico origen remoto de recetas; si una receta existe con un id antiguo, la app intenta reconocerla por link o titulo para evitar duplicados.
+Google Drive es el unico origen remoto de recetas; si una receta existe con un id antiguo, la app intenta reconocerla por link o titulo para evitar duplicados. Las recetas guardan `schemaVersion`, `revision`, `updatedAt`, `updatedBy` y `deletedAt` para resolver cambios entre dispositivos con mas seguridad.

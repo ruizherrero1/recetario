@@ -1,10 +1,11 @@
-const CACHE_NAME = "recetario-v33";
+const CACHE_NAME = "recetario-v34";
 const ASSETS = [
   "./",
   "./index.html",
   "./styles.css",
   "./mobile-grid.css",
   "./logo-theme.css",
+  "./drive-config.js",
   "./app.js",
   "./import-recipe.js",
   "./logo.png",
@@ -38,43 +39,17 @@ self.addEventListener("fetch", (event) => {
   if (url.origin !== location.origin) return;
 
   if (event.request.mode === "navigate") {
-    event.respondWith(indexWithAssets(event.request));
+    event.respondWith(networkFirst(event.request));
     return;
   }
 
-  if (url.pathname.endsWith("/firebase-config.js")) {
+  if (url.pathname.endsWith("/drive-config.js")) {
     event.respondWith(networkFirst(event.request));
     return;
   }
 
   event.respondWith(cacheFirst(event.request));
 });
-
-async function indexWithAssets(request) {
-  const response = await networkFirst(request);
-  const type = response.headers.get("content-type") || "";
-  if (!type.includes("text/html")) return response;
-
-  const html = await response.text();
-  const withMobileCss = html.includes("mobile-grid.css")
-    ? html
-    : html.replace(
-      '<link rel="stylesheet" href="styles.css">',
-      '<link rel="stylesheet" href="styles.css">\n<link rel="stylesheet" href="./mobile-grid.css">'
-    );
-  const withLogoCss = withMobileCss.includes("logo-theme.css")
-    ? withMobileCss
-    : withMobileCss.replace(
-      '<link rel="stylesheet" href="styles.css">',
-      '<link rel="stylesheet" href="styles.css">\n<link rel="stylesheet" href="./logo-theme.css">'
-    );
-
-  return new Response(withLogoCss, {
-    status: response.status,
-    statusText: response.statusText,
-    headers: response.headers
-  });
-}
 
 async function networkFirst(request) {
   try {

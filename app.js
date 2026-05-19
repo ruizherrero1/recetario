@@ -13,14 +13,23 @@ const state = {
     ready: false,
     syncing: false,
     requestSilent: false,
-    fileIds: new Map()
+    fileIds: new Map(),
+    fileChoices: new Map(),
+    lastReadAt: localStorage.getItem("recetario:drive:lastReadAt") || "",
+    lastWriteAt: localStorage.getItem("recetario:drive:lastWriteAt") || "",
+    lastBackupAt: localStorage.getItem("recetario:drive:lastBackupAt") || "",
+    lastError: localStorage.getItem("recetario:drive:lastError") || "",
+    lastDuplicateCount: Number(localStorage.getItem("recetario:drive:lastDuplicateCount") || 0),
+    pendingUploads: 0
   }
 };
 
+const RECIPE_SCHEMA_VERSION = 2;
 const GENERATED_ID = /^[a-f0-9]{20}$/i;
 const driveScope = "https://www.googleapis.com/auth/drive";
 const driveConfig = () => window.RECETARIO_DRIVE_CONFIG || {};
 const localKey = () => `recetario:${state.cookbookId}:recipes`;
+const deviceId = getDeviceId();
 
 const CARD_IMG_SALADO = `data:image/svg+xml,${encodeURIComponent(`
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
@@ -124,6 +133,7 @@ function bindEvents() {
   $("#driveConnectButton")?.addEventListener("click", () => connectGoogleDrive());
   $("#driveRefreshButton")?.addEventListener("click", () => refreshFromDrive(true));
   $("#driveExportButton")?.addEventListener("click", () => exportRecipesToDrive(state.recipes));
+  $("#driveRepairButton")?.addEventListener("click", repairDriveDuplicates);
   $("#searchInput")?.addEventListener("input", renderList);
   $("#categoryFilter")?.addEventListener("change", renderList);
   $("#sortSelect")?.addEventListener("change", updateSortMode);
@@ -202,12 +212,24 @@ function loadLocalRecipes() {
 
 function saveLocalRecipes() {
   state.recipes = normalizeRecipes(state.recipes);
-  localStorage.setItem(localKey(), JSON.stringify(state.recipes));
+  try {
+    localStorage.setItem(localKey(), JSON.stringify(state.recipes));
+  } catch (error) {
+    console.error(error);
+    setSyncStatus("No queda espacio local para guardar todo. Revisa fotos o exporta copia.");
+  }
+}
+
+function visibleRecipes() {
+  return state.recipes.filter((recipe) => !recipe.deletedAt);
 }
 
 async function saveRecipe(recipe) {
   const normalizedRecipe = normalizeImportedRecipe(recipe);
   normalizedRecipe.updatedAt = new Date().toISOString();
+  normalizedRecipe.updatedBy = deviceId;
+  const previous = state.recipes.find((item) => sameRecipeIdentity(item, normalizedRecipe));
+  normalizedRecipe.revision = (Number(previous?.revision) || Number(normalizedRecipe.revision) || 0) + 1;
   const index = state.recipes.findIndex((item) => sameRecipeIdentity(item, normalizedRecipe));
   if (index >= 0) {
     const picked = pickNewestRecipe(state.recipes[index], normalizedRecipe);
@@ -232,14 +254,28 @@ async function deleteRecipe(recipeId) {
   const recipe = state.recipes.find((item) => item.id === recipeId);
   if (!recipe || !confirm(`Eliminar "${recipe.title}"?`)) return;
 
+  try {
+    await createDriveBackup("antes-de-eliminar", state.recipes, false);
+  } catch (error) {
+    console.warn("No se pudo crear backup antes de eliminar", error);
+  }
+  const now = new Date().toISOString();
+  const tombstone = {
+    ...normalizeImportedRecipe(recipe),
+    deletedAt: now,
+    updatedAt: now,
+    updatedBy: deviceId,
+    revision: (Number(recipe.revision) || 0) + 1
+  };
   state.recipes = state.recipes.filter((item) => item.id !== recipeId);
+  state.recipes.push(tombstone);
   saveLocalRecipes();
   renderAll();
   showView("listView");
 
   if (state.drive.ready) {
     try {
-      await deleteRecipeFromDrive(recipeId);
+      await writeRecipeToDrive(tombstone);
       setSyncStatus("Eliminada tambien de Drive.");
     } catch {
       setSyncStatus("Eliminada en este movil. Revisa Drive cuando vuelvas a conectar.");
@@ -280,14 +316,18 @@ function renderAll() {
   renderCategoryFilter();
   renderList();
   renderFoldersView();
-  if (state.activeRecipeId) renderDetail(state.activeRecipeId);
+  if (state.activeRecipeId && visibleRecipes().some((recipe) => recipe.id === state.activeRecipeId)) {
+    renderDetail(state.activeRecipeId);
+  } else {
+    state.activeRecipeId = "";
+  }
 }
 
 function renderCategoryFilter() {
   const select = $("#categoryFilter");
   if (!select) return;
   const current = select.value;
-  const categories = [...new Set(state.recipes.flatMap((recipe) => recipe.categories || []))].sort(localeSort);
+  const categories = [...new Set(visibleRecipes().flatMap((recipe) => recipe.categories || []))].sort(localeSort);
   select.innerHTML = `<option value="">Todas</option>${categories.map((category) => `<option value="${escapeAttr(category)}">${escapeHtml(category)}</option>`).join("")}`;
   select.value = categories.includes(current) ? current : "";
 }
@@ -300,7 +340,7 @@ function renderList() {
   if (folderHeader) {
     if (state.folderFilter) {
       const carpeta = CARPETAS.find((c) => c.id === state.folderFilter);
-      const count = state.recipes.filter((r) => (r.carpetas || []).includes(state.folderFilter)).length;
+      const count = visibleRecipes().filter((r) => (r.carpetas || []).includes(state.folderFilter)).length;
       folderHeader.innerHTML = `
         <div class="folder-header-content" style="--folder-color:${carpeta?.color || "var(--brand)"}">
           <span class="folder-header-icon">${carpeta?.svg || ""}</span>
@@ -315,7 +355,7 @@ function renderList() {
 
   const query = normalize($("#searchInput")?.value || "");
   const category = $("#categoryFilter")?.value || "";
-  const filtered = state.recipes.filter((recipe) => {
+  const filtered = visibleRecipes().filter((recipe) => {
     if (state.folderFilter && !(recipe.carpetas || []).includes(state.folderFilter)) return false;
     const haystack = normalize([
       recipe.title,
@@ -331,7 +371,7 @@ function renderList() {
   });
 
   list.innerHTML = sortRecipes(filtered).map(recipeCard).join("");
-  const isEmpty = state.folderFilter ? filtered.length === 0 : state.recipes.length === 0;
+  const isEmpty = state.folderFilter ? filtered.length === 0 : visibleRecipes().length === 0;
   $("#emptyState")?.classList.toggle("hidden", !isEmpty);
   list.querySelectorAll(".recipe-card").forEach((card) => {
     card.addEventListener("click", () => openRecipe(card.dataset.id));
@@ -371,7 +411,7 @@ function openRecipe(recipeId) {
 }
 
 function renderDetail(recipeId) {
-  const recipe = state.recipes.find((item) => item.id === recipeId);
+  const recipe = visibleRecipes().find((item) => item.id === recipeId);
   const detail = $("#recipeDetail");
   if (!recipe || !detail) return;
   const carpetaId = (recipe.carpetas || [])[0] || null;
@@ -414,7 +454,7 @@ function renderDetail(recipeId) {
 }
 
 function editRecipe(recipeId) {
-  const recipe = state.recipes.find((item) => item.id === recipeId);
+  const recipe = visibleRecipes().find((item) => item.id === recipeId);
   if (!recipe) return;
   $("#editingId").value = recipe.id;
   $("#titleInput").value = recipe.title || "";
@@ -469,7 +509,7 @@ function renderFoldersView() {
   const grid = $("#foldersGrid");
   if (!grid) return;
   grid.innerHTML = CARPETAS.map((carpeta) => {
-    const count = state.recipes.filter((r) => (r.carpetas || []).includes(carpeta.id)).length;
+    const count = visibleRecipes().filter((r) => (r.carpetas || []).includes(carpeta.id)).length;
     return `
       <button class="folder-card" data-folder="${escapeAttr(carpeta.id)}"
         style="--folder-color:${carpeta.color};--folder-bg:${carpeta.bg}">
@@ -569,15 +609,19 @@ function loadGoogleIdentity() {
 async function refreshFromDrive(uploadLocalAfterMerge = false) {
   if (!state.drive.ready || state.drive.syncing) return;
   state.drive.syncing = true;
+  state.drive.pendingUploads = 0;
   setDriveStatus("Leyendo JSON de Drive...");
+  renderDriveStatus();
 
   try {
     const localRecipes = [...state.recipes];
-    const driveRecipes = await loadRecipesFromDrive();
+    const driveEntries = await loadDriveRecipeEntries();
+    const driveRecipes = driveEntries.map((entry) => entry.recipe);
     const pendingLocalRecipes = localRecipes.filter((recipe) => {
       const driveRecipe = driveRecipes.find((item) => sameRecipeIdentity(item, recipe));
       return !driveRecipe || dateValue(recipe.updatedAt || recipe.createdAt) > dateValue(driveRecipe.updatedAt || driveRecipe.createdAt);
     });
+    state.drive.pendingUploads = pendingLocalRecipes.length;
 
     state.recipes = mergeRecipes(localRecipes, driveRecipes);
     saveLocalRecipes();
@@ -588,32 +632,43 @@ async function refreshFromDrive(uploadLocalAfterMerge = false) {
       for (const recipe of pendingLocalRecipes) await writeRecipeToDrive(recipe);
     }
 
-    setDriveStatus(`Drive conectado. ${state.recipes.length} receta(s) disponibles.`);
+    setDriveMeta("lastReadAt", new Date().toISOString());
+    clearDriveError();
+    state.drive.pendingUploads = 0;
+    setDriveStatus(`Drive conectado. ${visibleRecipes().length} receta(s) disponibles.`);
     setSyncStatus("Sincronizado con Google Drive.");
   } catch (error) {
     console.error(error);
+    setDriveError("No se pudieron leer los JSON de Drive.");
     setDriveStatus("No se pudieron leer los JSON de Drive.");
   } finally {
     state.drive.syncing = false;
+    renderDriveStatus();
   }
 }
 
 async function loadRecipesFromDrive() {
+  return (await loadDriveRecipeEntries()).map((entry) => entry.recipe);
+}
+
+async function loadDriveRecipeEntries() {
   const files = await listDriveJsonFiles();
-  const recipes = [];
+  const entries = [];
   state.drive.fileIds = new Map();
+  state.drive.fileChoices = new Map();
   for (const file of files) {
     try {
       const content = await driveRequest(`https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`);
       recipesFromDrivePayload(content, file.name?.replace(/\.json$/i, "") || "").forEach((recipe) => {
-        recipes.push(recipe);
-        state.drive.fileIds.set(recipe.id, file.id);
+        entries.push({ file, recipe });
+        rememberDriveFileId(recipe, file);
       });
     } catch (error) {
       console.warn(`No se pudo importar ${file.name}`, error);
     }
   }
-  return recipes;
+  setDriveDuplicateCount(entries);
+  return entries;
 }
 
 async function listDriveJsonFiles() {
@@ -630,7 +685,39 @@ async function listDriveJsonFiles() {
     includeItemsFromAllDrives: "true"
   });
   const result = await driveRequest(`https://www.googleapis.com/drive/v3/files?${params}`);
-  return result.files || [];
+  return (result.files || []).filter((file) => !String(file.name || "").startsWith("backup-recetario-"));
+}
+
+function rememberDriveFileId(recipe, file) {
+  const currentEntry = state.drive.fileChoices.get(recipe.id);
+  if (!currentEntry) {
+    state.drive.fileIds.set(recipe.id, file.id);
+    state.drive.fileChoices.set(recipe.id, { recipe, file });
+    return;
+  }
+  const currentTime = dateValue(currentEntry?.recipe?.updatedAt || currentEntry?.file?.modifiedTime);
+  const nextTime = dateValue(recipe.updatedAt || file.modifiedTime);
+  if (nextTime >= currentTime) {
+    state.drive.fileIds.set(recipe.id, file.id);
+    state.drive.fileChoices.set(recipe.id, { recipe, file });
+  }
+}
+
+function setDriveDuplicateCount(entries) {
+  const groups = groupDriveEntries(entries);
+  const duplicateCount = groups.reduce((total, group) => total + Math.max(0, group.length - 1), 0);
+  setDriveMeta("lastDuplicateCount", duplicateCount);
+}
+
+function groupDriveEntries(entries) {
+  const groups = new Map();
+  entries.forEach((entry) => {
+    const key = recipeIdentityKey(entry.recipe) || `id:${entry.recipe.id}`;
+    if (!key) return;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(entry);
+  });
+  return Array.from(groups.values()).filter((group) => group.length > 1);
 }
 
 function recipesFromDrivePayload(payload, fallbackId = "") {
@@ -643,16 +730,28 @@ async function exportRecipesToDrive(recipes, showStatus = true) {
     if (showStatus) setDriveStatus("Conecta Google Drive primero.");
     return;
   }
+  try {
+    await createDriveBackup("antes-de-subir", state.recipes, false);
+  } catch (error) {
+    console.error(error);
+    setDriveError("No se pudo crear copia de seguridad antes de subir.");
+    setDriveStatus("No se pudo crear copia de seguridad antes de subir.");
+    return;
+  }
   state.drive.syncing = true;
   if (showStatus) setDriveStatus(`Subiendo ${recipes.length} receta(s) a Drive...`);
   try {
     for (const recipe of recipes) await writeRecipeToDrive(recipe);
+    setDriveMeta("lastWriteAt", new Date().toISOString());
+    clearDriveError();
     if (showStatus) setDriveStatus(`Drive actualizado. ${recipes.length} receta(s) subida(s).`);
   } catch (error) {
     console.error(error);
+    setDriveError("No se pudieron subir todas las recetas a Drive.");
     setDriveStatus("No se pudieron subir todas las recetas a Drive.");
   } finally {
     state.drive.syncing = false;
+    renderDriveStatus();
   }
 }
 
@@ -665,7 +764,107 @@ async function writeRecipeToDrive(recipe) {
     mimeType: "application/json",
     ...(fileId ? {} : { parents: [driveConfig().folderId] })
   };
-  const body = createDriveMultipartBody(metadata, JSON.stringify(normalizedRecipe, null, 2));
+  const savedFile = await uploadDriveJson(metadata, JSON.stringify(normalizedRecipe, null, 2), fileId);
+  state.drive.fileIds.set(normalizedRecipe.id, savedFile.id);
+  setDriveMeta("lastWriteAt", new Date().toISOString());
+}
+
+async function deleteRecipeFromDrive(recipeId) {
+  const fileId = state.drive.fileIds.get(recipeId);
+  if (!fileId) return;
+  await trashDriveFile(fileId);
+  state.drive.fileIds.delete(recipeId);
+}
+
+async function repairDriveDuplicates() {
+  if (!state.drive.ready || state.drive.syncing) {
+    setDriveStatus("Conecta Google Drive primero.");
+    return;
+  }
+  if (!confirm("Reparar duplicados en Drive? Se conservara la version mas reciente y las copias antiguas se moveran a la papelera.")) return;
+
+  state.drive.syncing = true;
+  setDriveStatus("Buscando duplicados en Drive...");
+  renderDriveStatus();
+  try {
+    const entries = await loadDriveRecipeEntries();
+    const duplicateGroups = groupDriveEntries(entries);
+    if (!duplicateGroups.length) {
+      setDriveMeta("lastDuplicateCount", 0);
+      setDriveStatus("Drive revisado. No hay duplicados.");
+      return;
+    }
+
+    await createDriveBackup("antes-de-reparar-duplicados", state.recipes, false, { ignoreSyncing: true });
+    let trashed = 0;
+    for (const group of duplicateGroups) {
+      const sorted = [...group].sort((a, b) => driveEntryTime(b) - driveEntryTime(a));
+      const keep = sorted[0];
+      state.drive.fileIds.set(keep.recipe.id, keep.file.id);
+      for (const duplicate of sorted.slice(1)) {
+        await trashDriveFile(duplicate.file.id);
+        trashed += 1;
+      }
+    }
+
+    setDriveMeta("lastDuplicateCount", 0);
+    clearDriveError();
+    state.drive.syncing = false;
+    await refreshFromDrive(false);
+    setDriveStatus(`Drive reparado. ${trashed} duplicado(s) movido(s) a la papelera.`);
+  } catch (error) {
+    console.error(error);
+    setDriveError("No se pudieron reparar los duplicados de Drive.");
+    setDriveStatus("No se pudieron reparar los duplicados de Drive.");
+  } finally {
+    state.drive.syncing = false;
+    renderDriveStatus();
+  }
+}
+
+function driveEntryTime(entry) {
+  return dateValue(entry.recipe.updatedAt || entry.recipe.createdAt || entry.file.modifiedTime);
+}
+
+async function trashDriveFile(fileId) {
+  const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?supportsAllDrives=true`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${state.drive.accessToken}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ trashed: true })
+  });
+  if (!response.ok) throw new Error(await response.text());
+}
+
+async function createDriveBackup(reason, recipes = state.recipes, showStatus = false, options = {}) {
+  if (!state.drive.ready || (state.drive.syncing && !options.ignoreSyncing)) return false;
+  const now = new Date().toISOString();
+  const stamp = now.replace(/[:.]/g, "-");
+  const metadata = {
+    name: `backup-recetario-${stamp}-${slugify(reason)}.json`,
+    mimeType: "application/json",
+    parents: [driveConfig().folderId]
+  };
+  const payload = JSON.stringify({
+    schemaVersion: RECIPE_SCHEMA_VERSION,
+    backupCreatedAt: now,
+    reason,
+    deviceId,
+    recipeCount: recipes.length,
+    recipes
+  }, null, 2);
+  if (showStatus) setDriveStatus("Creando copia de seguridad en Drive...");
+  await uploadDriveJson(metadata, payload);
+  setDriveMeta("lastBackupAt", now);
+  localStorage.setItem("recetario:lastBackupAt", now);
+  renderBackupStatus();
+  return true;
+}
+
+async function uploadDriveJson(metadata, json, fileId = "") {
+  const body = createDriveMultipartBody(metadata, json);
   const url = fileId
     ? `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=multipart&supportsAllDrives=true`
     : "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true";
@@ -678,19 +877,7 @@ async function writeRecipeToDrive(recipe) {
     body: body.payload
   });
   if (!response.ok) throw new Error(await response.text());
-  const savedFile = await response.json();
-  state.drive.fileIds.set(normalizedRecipe.id, savedFile.id);
-}
-
-async function deleteRecipeFromDrive(recipeId) {
-  const fileId = state.drive.fileIds.get(recipeId);
-  if (!fileId) return;
-  const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?supportsAllDrives=true`, {
-    method: "DELETE",
-    headers: { Authorization: `Bearer ${state.drive.accessToken}` }
-  });
-  if (!response.ok) throw new Error(await response.text());
-  state.drive.fileIds.delete(recipeId);
+  return response.json();
 }
 
 function createDriveMultipartBody(metadata, json) {
@@ -910,8 +1097,14 @@ function exportBackup() {
 async function importBackup(event) {
   const file = event.target.files[0];
   if (!file) return;
-  const recipes = JSON.parse(await file.text());
-  if (!Array.isArray(recipes)) return;
+  try {
+    await createDriveBackup("antes-de-importar", state.recipes, false);
+  } catch (error) {
+    console.warn("No se pudo crear backup antes de importar", error);
+  }
+  const payload = JSON.parse(await file.text());
+  const recipes = Array.isArray(payload) ? payload : (Array.isArray(payload.recipes) ? payload.recipes : []);
+  if (!recipes.length) return;
   let imported = 0;
   let skipped = 0;
   for (const recipe of recipes) {
@@ -933,8 +1126,8 @@ function renderBackupStatus() {
   if (!status) return;
   const lastBackup = localStorage.getItem("recetario:lastBackupAt");
   status.textContent = lastBackup
-    ? `Ultima copia exportada: ${formatDateTime(lastBackup)}.`
-    : "Todavia no se ha exportado una copia en este navegador.";
+    ? `Ultima copia creada: ${formatDateTime(lastBackup)}.`
+    : "Todavia no se ha creado una copia en este navegador.";
 }
 
 function renderDriveStatus() {
@@ -942,14 +1135,45 @@ function renderDriveStatus() {
   $("#driveConnectButton")?.classList.toggle("hidden", state.drive.ready);
   $("#driveRefreshButton")?.classList.toggle("hidden", !state.drive.ready);
   $("#driveExportButton")?.classList.toggle("hidden", !state.drive.ready);
+  $("#driveRepairButton")?.classList.toggle("hidden", !state.drive.ready);
   if (!config.folderId) return setDriveStatus("Configura el folderId de Google Drive.");
   if (!config.clientId) return setDriveStatus("Falta el clientId de Google Drive.");
   setDriveStatus(state.drive.ready ? `Drive conectado. Carpeta: ${config.folderId}.` : "Drive preparado. Conecta para leer y guardar JSON.");
+  renderDriveDiagnostics();
 }
 
 function setDriveStatus(text) {
   const status = $("#driveStatus");
   if (status) status.textContent = text;
+  renderDriveDiagnostics();
+}
+
+function renderDriveDiagnostics() {
+  const diagnostics = $("#driveDiagnostics");
+  if (!diagnostics) return;
+  const items = [
+    state.drive.lastReadAt ? `Ultima lectura: ${formatDateTime(state.drive.lastReadAt)}` : "Ultima lectura: pendiente",
+    state.drive.lastWriteAt ? `Ultima subida: ${formatDateTime(state.drive.lastWriteAt)}` : "Ultima subida: pendiente",
+    state.drive.lastBackupAt ? `Ultimo backup Drive: ${formatDateTime(state.drive.lastBackupAt)}` : "Ultimo backup Drive: pendiente",
+    `Pendientes: ${state.drive.pendingUploads}`,
+    `Duplicados detectados: ${state.drive.lastDuplicateCount || 0}`
+  ];
+  if (state.drive.lastError) items.push(`Ultimo error: ${state.drive.lastError}`);
+  diagnostics.innerHTML = items.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+}
+
+function setDriveMeta(key, value) {
+  state.drive[key] = value;
+  localStorage.setItem(`recetario:drive:${key}`, String(value));
+}
+
+function setDriveError(message) {
+  setDriveMeta("lastError", message);
+}
+
+function clearDriveError() {
+  state.drive.lastError = "";
+  localStorage.removeItem("recetario:drive:lastError");
 }
 
 function mergeRecipes(localRecipes, cloudRecipes) {
@@ -996,7 +1220,10 @@ function normalizeImportedRecipe(recipe, fallbackId = "") {
   const rawId = String(recipe?.id || "").trim();
   const preferredId = rawId && !GENERATED_ID.test(rawId) ? slugify(rawId) : slugify(title) || slugify(fallbackId) || "receta";
   const allCarpetaIds = CARPETAS.map((c) => c.id);
+  const createdAt = recipe?.createdAt || new Date().toISOString();
+  const updatedAt = recipe?.updatedAt || createdAt;
   return {
+    schemaVersion: Number(recipe?.schemaVersion) || RECIPE_SCHEMA_VERSION,
     id: preferredId,
     title,
     carpetas: normalizeList(recipe?.carpetas || recipe?.folders || []).filter((c) => allCarpetaIds.includes(c)),
@@ -1010,8 +1237,11 @@ function normalizeImportedRecipe(recipe, fallbackId = "") {
     notes: String(recipe?.notes || recipe?.notas || "").trim(),
     sourceUrl: normalizeUrlForStorage(recipe?.sourceUrl || recipe?.link || recipe?.url),
     photo: typeof recipe?.photo === "string" && recipe.photo.startsWith("data:image/") ? recipe.photo : "",
-    createdAt: recipe?.createdAt || new Date().toISOString(),
-    updatedAt: recipe?.updatedAt || new Date().toISOString()
+    createdAt,
+    updatedAt,
+    updatedBy: String(recipe?.updatedBy || deviceId),
+    revision: Math.max(1, Number(recipe?.revision) || 1),
+    deletedAt: recipe?.deletedAt || ""
   };
 }
 
@@ -1029,7 +1259,7 @@ function splitLines(value) {
 }
 
 function findDuplicateRecipe(recipe) {
-  return state.recipes.find((item) => item.id !== recipe.id && sameRecipeIdentity(item, recipe));
+  return visibleRecipes().find((item) => item.id !== recipe.id && sameRecipeIdentity(item, recipe));
 }
 
 function sameRecipeIdentity(a, b) {
@@ -1053,7 +1283,10 @@ function recipeIdentityKey(recipe) {
 function pickNewestRecipe(a, b) {
   if (!a) return b;
   if (!b) return a;
-  return dateValue(b.updatedAt || b.createdAt) >= dateValue(a.updatedAt || a.createdAt) ? b : a;
+  const aTime = dateValue(a.updatedAt || a.createdAt);
+  const bTime = dateValue(b.updatedAt || b.createdAt);
+  if (bTime !== aTime) return bTime > aTime ? b : a;
+  return (Number(b.revision) || 0) >= (Number(a.revision) || 0) ? b : a;
 }
 
 function uniqueRecipeId(value, existingRecipes = state.recipes) {
@@ -1104,6 +1337,15 @@ function shortUrl(value) {
 function dateValue(value) {
   const time = Date.parse(value || "");
   return Number.isNaN(time) ? 0 : time;
+}
+
+function getDeviceId() {
+  const key = "recetario:deviceId";
+  const saved = localStorage.getItem(key);
+  if (saved) return saved;
+  const id = crypto.randomUUID ? crypto.randomUUID() : `device_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+  localStorage.setItem(key, id);
+  return id;
 }
 
 function formatDateTime(value) {
@@ -1212,7 +1454,7 @@ function compressImage(file, maxSize, quality) {
 let cookState = { steps: [], index: 0, ingredients: [], checked: new Set(), wakeLock: null };
 
 async function openCookMode(recipeId) {
-  const recipe = state.recipes.find((r) => r.id === recipeId);
+  const recipe = visibleRecipes().find((r) => r.id === recipeId);
   if (!recipe) return;
   const steps = (recipe.steps || "").split(/\n+/).map((s) => s.trim()).filter(Boolean);
   if (steps.length === 0) { alert("Esta receta no tiene pasos definidos."); return; }

@@ -12,7 +12,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,600;0,700;1,400&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap">
 <link rel="stylesheet" href="styles.css">
-<script src="firebase-config.js"></script>
+<link rel="stylesheet" href="mobile-grid.css">
+<link rel="stylesheet" href="logo-theme.css">
+<script src="drive-config.js"></script>
 <script src="import-recipe.js" defer></script>
 </head>
 <body>
@@ -299,9 +301,11 @@
     <div class="settings-group" id="driveGroup">
       <h3>Google Drive</h3>
       <p id="driveStatus" class="muted"></p>
+      <ul id="driveDiagnostics" class="sync-details"></ul>
       <button id="driveConnectButton" type="button" class="secondary-button">Conectar Drive</button>
       <button id="driveRefreshButton" type="button" class="secondary-button hidden">Actualizar desde Drive</button>
       <button id="driveExportButton" type="button" class="secondary-button hidden">Subir todo a Drive</button>
+      <button id="driveRepairButton" type="button" class="secondary-button hidden">Reparar duplicados</button>
     </div>
 
     <button id="exportButton" type="button" class="secondary-button">Exportar copia JSON</button>

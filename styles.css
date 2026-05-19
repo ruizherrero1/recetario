@@ -831,6 +831,16 @@ dialog::backdrop { background: rgba(42,31,23,0.35); backdrop-filter: blur(4px); 
 .settings-group { display: grid; gap: 10px; border: 1.5px solid var(--soft); border-radius: var(--rs); background: var(--cream); padding: 12px; }
 .settings-group h3 { margin: 0; color: var(--ink2); font-size: 0.84rem; font-weight: 700; }
 .settings-group p { margin: 0; }
+.sync-details {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
 .file-button input { display: none; }
 .install-help { border: 1.5px solid var(--soft); border-radius: var(--rs); background: var(--cream); padding: 11px 13px; }
 .install-help summary { color: var(--ink2); cursor: pointer; font-weight: 700; font-size: 0.86rem; }
