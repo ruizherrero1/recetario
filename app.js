@@ -95,6 +95,20 @@ const savedCookbook = localStorage.getItem("recetario:lastCookbookCode");
 if (savedCookbook) {
   $("#cookbookCode").value = savedCookbook;
   unlock();
+} else {
+  // Show recipe count from localStorage before unlocking
+  (function showLockCount() {
+    const el = $("#lockRecipeCount");
+    if (!el) return;
+    let total = 0;
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key?.startsWith("recetario:recipes:")) {
+        try { total += JSON.parse(localStorage.getItem(key) || "[]").length; } catch {}
+      }
+    }
+    if (total > 0) el.textContent = `${total} receta${total === 1 ? "" : "s"} guardada${total === 1 ? "" : "s"}`;
+  })();
 }
 
 function bindEvents() {
@@ -348,7 +362,15 @@ function renderDetail(recipeId) {
   const recipe = state.recipes.find((item) => item.id === recipeId);
   const detail = $("#recipeDetail");
   if (!recipe || !detail) return;
+  const carpetaId = (recipe.carpetas || [])[0] || null;
+  const carpeta = CARPETAS.find(c => c.id === carpetaId);
+  const heroBg = carpeta ? carpeta.bg : "#f3e4d0";
+  const heroColor = carpeta ? carpeta.color : "#8a6a50";
+  const heroIcon = carpeta
+    ? carpeta.svg.replace("<svg ", `<svg width="72" height="72" style="color:${heroColor}" `)
+    : "";
   detail.innerHTML = `
+    ${heroIcon ? `<div class="detail-hero" style="background:${heroBg};">${heroIcon}<span class="detail-hero-label" style="background:${heroColor};">${escapeHtml(carpetaId)}</span></div>` : ""}
     <h2>${escapeHtml(recipe.title)}</h2>
     <div class="detail-line">
       <span class="detail-label">Categoria</span>
