@@ -142,9 +142,6 @@
       <div class="mode-tabs" role="tablist" aria-label="Método de entrada">
         <button class="mode-tab active" data-mode="manual">Manual</button>
         <button class="mode-tab" data-mode="import">JSON</button>
-        <button class="mode-tab" data-mode="photo">Foto</button>
-        <button class="mode-tab" data-mode="link">Link</button>
-        <button class="mode-tab" data-mode="voice">Voz</button>
       </div>
 
       <form id="recipeForm" class="recipe-form">
@@ -161,45 +158,6 @@
           </label>
           <button id="importSingleRecipeButton" type="button" class="secondary-button">Cargar en formulario</button>
           <p id="singleRecipeImportStatus" class="message"></p>
-        </div>
-
-        <!-- Photo mode -->
-        <div id="photoMode" class="mode-panel">
-          <label class="field">
-            <span>Foto de receta escrita</span>
-            <input id="photoInput" type="file" accept="image/*">
-          </label>
-          <button id="runOcrButton" type="button" class="secondary-button">Analizar foto</button>
-          <p id="ocrStatus" class="message"></p>
-        </div>
-
-        <!-- Link mode -->
-        <div id="linkMode" class="mode-panel">
-          <label class="field">
-            <span>Link</span>
-            <input id="recipeUrl" type="url" placeholder="https://…">
-          </label>
-          <button id="importLinkButton" type="button" class="secondary-button">Intentar importar</button>
-          <label class="field">
-            <span>Si no funciona, pega aquí el texto de la receta</span>
-            <textarea id="pastedRecipeText" rows="7" placeholder="Ingredientes, preparación, notas…"></textarea>
-          </label>
-          <button id="parseTextButton" type="button" class="secondary-button">Convertir texto en receta</button>
-          <p id="linkStatus" class="message"></p>
-        </div>
-
-        <!-- Voice mode -->
-        <div id="voiceMode" class="mode-panel">
-          <div class="voice-actions">
-            <button id="startVoiceButton" type="button" class="secondary-button">Dictar receta</button>
-            <button id="stopVoiceButton" type="button" class="secondary-button" disabled>Parar</button>
-          </div>
-          <label class="field">
-            <span>Texto detectado</span>
-            <textarea id="voiceText" rows="7"></textarea>
-          </label>
-          <button id="parseVoiceButton" type="button" class="secondary-button">Convertir voz en receta</button>
-          <p id="voiceStatus" class="message"></p>
         </div>
 
         <!-- Manual mode (always shown below) -->

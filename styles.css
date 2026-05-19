@@ -528,6 +528,7 @@ input:focus, textarea:focus, select:focus {
   padding: 0;
   font-size: 0;
   flex-direction: row;
+  justify-content: center;
   transition: background 0.15s, transform 0.12s, box-shadow 0.15s;
 }
 .nav-button[data-view="addView"] svg { width: 28px; height: 28px; }
