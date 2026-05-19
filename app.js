@@ -316,14 +316,19 @@ function renderList() {
 }
 
 function recipeCard(recipe) {
-  const isDessert = [...(recipe.categories || []), ...(recipe.tags || [])].map(normalize)
-    .some((item) => ["postre", "postres", "dulce", "dulces", "bizcocho", "tarta", "cake", "dessert"].includes(item));
-  const label = isDessert ? "Postre" : "Salado";
+  const carpetaId = (recipe.carpetas || [])[0] || null;
+  const carpeta = CARPETAS.find(c => c.id === carpetaId);
+  const bg = carpeta ? carpeta.bg : "#f3e4d0";
+  const color = carpeta ? carpeta.color : "#8a6a50";
+  const label = carpeta ? carpeta.id : "Sin carpeta";
+  const icon = carpeta
+    ? carpeta.svg.replace("<svg ", `<svg width="64" height="64" style="color:${color}" `)
+    : `<svg width="64" height="64" viewBox="0 0 32 32" fill="none" stroke="${color}" stroke-width="1.5" stroke-linecap="round"><rect x="4" y="8" width="24" height="18" rx="3"/><path d="M4 12h24"/></svg>`;
   return `
     <button class="recipe-card" data-id="${escapeAttr(recipe.id)}">
       <div class="card-img-wrap">
-        <img class="card-img" src="${isDessert ? CARD_IMG_POSTRE : CARD_IMG_SALADO}" alt="${label}" loading="lazy">
-        <span class="card-type-badge ${isDessert ? "chip-postre" : "chip-salado"}">${label}</span>
+        <div class="card-img-folder" style="background:${bg};">${icon}</div>
+        <span class="card-type-badge" style="background:${color};color:#fff;">${label}</span>
       </div>
       <div class="card-body">
         <h2>${escapeHtml(recipe.title)}</h2>
