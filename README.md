@@ -16,10 +16,9 @@ App movil para guardar recetas, organizarlas por categorias y etiquetas, sincron
 - Importacion desde link cuando la web lo permite; si no, permite pegar el texto.
 - Aviso de posible duplicado por nombre o link.
 - Exportacion e importacion de copia JSON.
-- Sincronizacion con Google Drive como archivos JSON, uno por receta, cuando se configura `RECETARIO_DRIVE_CONFIG`.
+- Sincronizacion con Google Drive como archivos JSON, uno por receta.
 - Ayuda para instalar la app en iPhone desde ajustes.
 - Modo local sin configurar nada.
-- Sincronizacion con Firebase cuando se rellena `firebase-config.js`.
 
 ## Limitaciones importantes
 
@@ -39,20 +38,6 @@ La importacion desde redes sociales y muchas webs puede fallar porque bloquean l
 6. Guarda.
 7. La app quedara publicada en `https://ruizherrero1.github.io/recetario/`.
 
-## Configurar Firebase gratis para sincronizar
-
-1. Entra en <https://console.firebase.google.com/>.
-2. Crea un proyecto nuevo.
-3. En `Build > Authentication`, activa `Anonymous`.
-4. En `Build > Firestore Database`, crea una base de datos en modo produccion.
-5. En reglas de Firestore, pega el contenido de `firestore.rules` y publica.
-6. En `Project settings > General`, crea una app web.
-7. Copia la configuracion `firebaseConfig`.
-8. Edita `firebase-config.js` y rellena `window.RECETARIO_FIREBASE_CONFIG`.
-9. Sube el cambio a GitHub.
-
-Firestore tiene cuota gratis suficiente para un recetario pequeno: 1 GiB de datos, 50.000 lecturas al dia, 20.000 escrituras al dia y 20.000 borrados al dia.
-
 ## Uso recomendado
 
 Usad un codigo largo y dificil de adivinar, por ejemplo una frase de 4 o 5 palabras. Ese mismo codigo en los dos moviles abre el mismo recetario.
@@ -65,7 +50,7 @@ Para instalarlo en iPhone: abre la app en Safari, pulsa compartir y elige `Anadi
 
 ## Configurar Google Drive con JSON
 
-La app puede guardar cada receta como un archivo `id.json` dentro de una carpeta de Drive. Solo lee archivos JSON; documentos como `.docx` quedan ignorados. La carpeta queda fijada en `firebase-config.js`:
+La app guarda cada receta como un archivo `id.json` dentro de una carpeta de Drive. Solo lee archivos JSON; documentos como `.docx` quedan ignorados. La carpeta queda fijada en `firebase-config.js`:
 
 ```js
 window.RECETARIO_DRIVE_CONFIG = {
@@ -87,3 +72,5 @@ Pasos:
 9. En la app, entra en `Ajustes > Conectar Drive`.
 
 Si la app esta en modo `Testing`, anade como usuarios de prueba las cuentas de Google que vayan a usar el recetario.
+
+Firebase ya no se usa. Drive es el unico origen remoto de recetas; si una receta existe con un id antiguo, la app intenta reconocerla por link o titulo para evitar duplicados.
