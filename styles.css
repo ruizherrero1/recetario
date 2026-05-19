@@ -486,10 +486,9 @@ input:focus, textarea:focus, select:focus {
   bottom: max(10px, env(safe-area-inset-bottom));
   transform: translateX(-50%);
   width: min(420px, calc(100% - 24px));
-  display: grid;
-  grid-template-columns: 1fr 1fr auto;
+  display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   border: 1.5px solid var(--soft);
   border-radius: var(--rm);
   background: rgba(253,248,241,0.94);
@@ -500,6 +499,8 @@ input:focus, textarea:focus, select:focus {
   z-index: 200;
 }
 .nav-button {
+  flex: 1;
+  min-width: 0;
   border: none;
   border-radius: var(--rs);
   background: transparent;
@@ -519,6 +520,7 @@ input:focus, textarea:focus, select:focus {
 
 /* FAB "Añadir" */
 .nav-button[data-view="addView"] {
+  flex: none;
   width: 52px;
   height: 52px;
   border-radius: 50%;
