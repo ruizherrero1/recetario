@@ -1,4 +1,4 @@
-const CACHE_NAME = "recetario-v22";
+const CACHE_NAME = "recetario-v23";
 const ASSETS = [
   "./",
   "./index.html",
@@ -6,9 +6,7 @@ const ASSETS = [
   "./mobile-grid.css",
   "./logo-theme.css",
   "./app.js",
-  "./app-fix.js",
   "./import-recipe.js",
-  "./drive-sync.js",
   "./apple-touch-icon.png",
   "./manifest.webmanifest"
 ];
@@ -37,7 +35,7 @@ self.addEventListener("fetch", (event) => {
   if (url.origin !== location.origin) return;
 
   if (event.request.mode === "navigate") {
-    event.respondWith(indexWithFix(event.request));
+    event.respondWith(networkFirst(event.request));
     return;
   }
 
@@ -48,38 +46,6 @@ self.addEventListener("fetch", (event) => {
 
   event.respondWith(cacheFirst(event.request));
 });
-
-async function indexWithFix(request) {
-  const response = await networkFirst(request);
-  const type = response.headers.get("content-type") || "";
-  if (!type.includes("text/html")) return response;
-
-  const html = await response.text();
-  const withMobileCss = html.includes("mobile-grid.css")
-    ? html
-    : html.replace(
-      '<link rel="stylesheet" href="styles.css">',
-      '<link rel="stylesheet" href="styles.css">\n<link rel="stylesheet" href="./mobile-grid.css">'
-    );
-  const withLogoCss = withMobileCss.includes("logo-theme.css")
-    ? withMobileCss
-    : withMobileCss.replace(
-      '<link rel="stylesheet" href="styles.css">',
-      '<link rel="stylesheet" href="styles.css">\n<link rel="stylesheet" href="./logo-theme.css">'
-    );
-  const fixed = withLogoCss.includes("app-fix.js")
-    ? withLogoCss
-    : withLogoCss.replace(
-      '<script type="module" src="app.js"></script>',
-      '<script src="./app-fix.js"></script>\n<script type="module" src="app.js"></script>'
-    );
-
-  return new Response(fixed, {
-    status: response.status,
-    statusText: response.statusText,
-    headers: response.headers
-  });
-}
 
 async function networkFirst(request) {
   try {
