@@ -63,9 +63,11 @@ button { cursor: pointer; border: none; background: none; }
   align-items: center;
   gap: 10px;
 }
-.lock-logo-svg {
-  width: 68px;
-  height: 68px;
+.lock-logo-svg,
+.lock-logo-img {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
   filter: drop-shadow(0 4px 12px rgba(192,78,34,0.25));
 }
 .lock-title {
@@ -124,9 +126,11 @@ button { cursor: pointer; border: none; background: none; }
   gap: 12px;
 }
 .brand-row { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.topbar-logo-svg {
+.topbar-logo-svg,
+.topbar-logo-img {
   width: 36px;
   height: 36px;
+  object-fit: contain;
   flex-shrink: 0;
   filter: drop-shadow(0 2px 5px rgba(192,78,34,0.2));
 }

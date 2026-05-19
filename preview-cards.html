@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Preview — Estilos de tarjeta</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, sans-serif; background: #f5ede3; padding: 32px 24px; color: #2d1f0f; }
+  h1 { font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; color: #6b3a1f; }
+  .subtitle { font-size: 0.82rem; color: #8a6a50; margin-bottom: 32px; }
+  .section { margin-bottom: 48px; }
+  .section-title { font-size: 1rem; font-weight: 700; margin-bottom: 4px; color: #2d1f0f; }
+  .section-desc { font-size: 0.8rem; color: #8a6a50; margin-bottom: 16px; }
+  .cards { display: flex; gap: 14px; flex-wrap: wrap; }
+
+  /* Base card */
+  .card {
+    width: 160px;
+    background: #fff;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(80,45,20,0.10);
+  }
+  .card-img-wrap {
+    position: relative;
+    height: 110px;
+    overflow: hidden;
+  }
+  .badge {
+    position: absolute;
+    top: 8px; right: 8px;
+    font-size: 0.6rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 3px 7px;
+    border-radius: 20px;
+    text-transform: uppercase;
+  }
+  .badge-salado { background: #3a2a1a; color: #fff; }
+  .badge-postre { background: #c04e22; color: #fff; }
+  .badge-carpeta { color: #fff; }
+  .card-body { padding: 10px 11px 12px; }
+  .card-title { font-size: 0.87rem; font-weight: 700; color: #2d1f0f; line-height: 1.3; margin-bottom: 6px; }
+  .card-time { font-size: 0.72rem; color: #6b8f71; background: #e8f3ea; border-radius: 20px; display: inline-block; padding: 2px 8px; }
+
+  /* ── OPCIÓN A: Icono carpeta ── */
+  .opt-a .img-bg {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .opt-a .folder-icon-big {
+    width: 62px; height: 62px;
+    opacity: 0.85;
+  }
+
+  /* ── OPCIÓN B: Iniciales ── */
+  .opt-b .img-bg {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #e8c89a 0%, #d4a06a 100%);
+  }
+  .opt-b .initials {
+    font-size: 3rem;
+    font-weight: 900;
+    color: rgba(255,255,255,0.9);
+    line-height: 1;
+    text-shadow: 0 2px 8px rgba(120,60,20,0.3);
+    font-family: Georgia, serif;
+  }
+  .opt-b-2 .img-bg { background: linear-gradient(135deg, #b8d4c8 0%, #7aaa94 100%); }
+  .opt-b-3 .img-bg { background: linear-gradient(135deg, #e8b4b4 0%, #c47878 100%); }
+
+  /* ── OPCIÓN C: Gradiente puro ── */
+  .opt-c .img-bg {
+    width: 100%; height: 100%;
+  }
+  .carne-grad { background: linear-gradient(135deg, #f5c4a0 0%, #d4613a 100%); }
+  .pasta-grad { background: linear-gradient(135deg, #f5c8b8 0%, #c04e22 100%); }
+  .verduras-grad { background: linear-gradient(135deg, #c8e8c8 0%, #4d9e5a 100%); }
+  .postre-grad { background: linear-gradient(135deg, #f8d0d8 0%, #e05870 100%); }
+  .bebidas-grad { background: linear-gradient(135deg, #c8d4f8 0%, #3a5bd9 100%); }
+
+  /* ── OPCIÓN D: Icono + gradiente ── */
+  .opt-d .img-bg {
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .opt-d .folder-icon-big {
+    width: 58px; height: 58px;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.18));
+  }
+  /* soft pattern overlay */
+  .opt-d .img-bg::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at 70% 30%, rgba(255,255,255,0.25) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  /* actual current style for comparison */
+  .current .img-bg {
+    width: 100%; height: 100%;
+    background: #f3e4d0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .current .img-bg svg { width: 90px; height: 90px; }
+  .current-postre .img-bg { background: #fde8d8; }
+
+  hr { border: none; border-top: 1.5px solid rgba(150,100,60,0.15); margin: 0 0 40px; }
+  .label-current { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: #aaa; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<h1>Propuestas de imagen para tarjetas de receta</h1>
+<p class="subtitle">Comparativa visual de estilos alternativos a las ilustraciones actuales de Salado / Postre</p>
+
+<!-- ACTUAL -->
+<div class="section">
+  <p class="label-current">Actual (para comparar)</p>
+  <div class="cards">
+    <!-- Salado actual -->
+    <div class="card current">
+      <div class="card-img-wrap">
+        <div class="img-bg">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+            <ellipse cx="200" cy="210" rx="118" ry="18" fill="rgba(35,47,62,.18)"/>
+            <circle cx="200" cy="150" r="96" fill="#e4c08b"/>
+            <circle cx="200" cy="150" r="82" fill="#fff7e8"/>
+            <ellipse cx="182" cy="148" rx="28" ry="20" fill="#bf5a30"/>
+            <ellipse cx="218" cy="152" rx="26" ry="19" fill="#d47a3f"/>
+            <path d="M152 124c18-18 31-2 44-12 15-11 30-3 47 10" fill="none" stroke="#4d7c5e" stroke-width="7" stroke-linecap="round"/>
+            <path d="M170 136c22-14 39-6 61-10" fill="none" stroke="#77a56f" stroke-width="5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span class="badge badge-salado">Salado</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">Pollo Asado</div>
+        <span class="card-time">1 h 30 min</span>
+      </div>
+    </div>
+    <!-- Postre actual -->
+    <div class="card current current-postre">
+      <div class="card-img-wrap">
+        <div class="img-bg">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+            <ellipse cx="200" cy="220" rx="115" ry="16" fill="rgba(35,47,62,.16)"/>
+            <path d="M118 202 200 102l82 100c-46 18-115 18-164 0Z" fill="#e8a15d"/>
+            <path d="M126 194 200 106l74 88c-46 10-101 10-148 0Z" fill="#fff0da"/>
+            <path d="M130 196c48 18 94 18 140 0" fill="none" stroke="#b84d28" stroke-width="9" stroke-linecap="round"/>
+            <circle cx="176" cy="170" r="8" fill="#8b1a1a"/>
+            <circle cx="202" cy="158" r="8" fill="#8b1a1a"/>
+            <circle cx="228" cy="170" r="8" fill="#8b1a1a"/>
+            <path d="M190 126c-6-28 8-34 0-56" fill="none" stroke="#4d7c5e" stroke-width="5" stroke-linecap="round"/>
+            <ellipse cx="192" cy="66" rx="10" ry="15" fill="#4d7c5e"/>
+          </svg>
+        </div>
+        <span class="badge badge-postre">Postre</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">Tiramisú</div>
+        <span class="card-time">35 min + reposo</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr>
+
+<!-- OPCIÓN A -->
+<div class="section">
+  <div class="section-title">Opción A — Icono de carpeta sobre fondo liso</div>
+  <div class="section-desc">El icono SVG de la carpeta asignada, grande y centrado. Fondo del color de esa carpeta.</div>
+  <div class="cards">
+    <!-- Carne -->
+    <div class="card opt-a">
+      <div class="card-img-wrap">
+        <div class="img-bg" style="background:#fdf0eb;">
+          <svg class="folder-icon-big" viewBox="0 0 32 32" fill="none" stroke="#d4613a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="20" cy="11" r="8"/><path d="M14 17L5 26"/><circle cx="4.5" cy="26.5" r="2.5" fill="#d4613a" stroke="none"/>
+          </svg>
+        </div>
+        <span class="badge badge-carpeta" style="background:#d4613a;">Carne</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">Pollo Asado</div>
+        <span class="card-time">1 h 30 min</span>
+      </div>
+    </div>
+    <!-- Pasta -->
+    <div class="card opt-a">
+      <div class="card-img-wrap">
+        <div class="img-bg" style="background:#f5e8e3;">
+          <svg class="folder-icon-big" viewBox="0 0 32 32" fill="none" stroke="#c04e22" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 17H26L24 27H8Z"/><line x1="4" y1="17" x2="28" y2="17"/><path d="M10 13Q11 10 10 7"/><path d="M16 12Q17 9 16 6"/><path d="M22 13Q23 10 22 7"/>
+          </svg>
+        </div>
+        <span class="badge badge-carpeta" style="background:#c04e22;">Pasta</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">Carbonara</div>
+        <span class="card-time">20 min</span>
+      </div>
+    </div>
+    <!-- Repostería -->
+    <div class="card opt-a">
+      <div class="card-img-wrap">
+        <div class="img-bg" style="background:#eaeaee;">
+          <svg class="folder-icon-big" viewBox="0 0 32 32" fill="none" stroke="#3a3a4a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="10" y1="5" x2="10" y2="27"/><path d="M7 5V13C7 13 7 16 10 16C13 16 13 13 13 13V5"/><line x1="22" y1="5" x2="22" y2="27"/><path d="M18 5L22 10L26 5"/>
+          </svg>
+        </div>
+        <span class="badge badge-carpeta" style="background:#3a3a4a;">Repostería</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">Banana Bread</div>
+        <span class="card-time">45-50 min</span>
+      </div>
+    </div>
+    <!-- Verduras -->
+    <div class="card opt-a">
+      <div class="card-img-wrap">
+        <div class="img-bg" style="background:#e5f5ea;">
+          <svg class="folder-icon-big" viewBox="0 0 32 32" fill="none" stroke="#4d9e5a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 27C16 27 6 20 6 13A10 10 0 0 1 26 13C26 20 16 27 16 27Z"/><line x1="16" y1="27" x2="16" y2="14"/><path d="M16 22L11 18"/><path d="M16 19L21 15"/>
+          </svg>
+        </div>
+        <span class="badge badge-carpeta" style="background:#4d9e5a;">Verduras</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">Gratin Dauphinoise</div>
+        <span class="card-time">40-45 min</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- OPCIÓN B -->
+<div class="section">
+  <div class="section-title">Opción B — Iniciales del título</div>
+  <div class="section-desc">1-2 letras del nombre de la receta, grandes, sobre gradiente cálido. El color varía según el nombre.</div>
+  <div class="cards">
+    <div class="card opt-b">
+      <div class="card-img-wrap">
+        <div class="img-bg">
+          <span class="initials">PA</span>
+        </div>
+        <span class="badge badge-salado">Salado</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">Pollo Asado</div>
+        <span class="card-time">1 h 30 min</span>
+      </div>
+    </div>
+    <div class="card opt-b opt-b-2">
+      <div class="card-img-wrap">
+        <div class="img-bg">
+          <span class="initials">BB</span>
+        </div>
+        <span class="badge badge-postre">Postre</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">Banana Bread</div>
+        <span class="card-time">45-50 min</span>
+      </div>
+    </div>
+    <div class="card opt-b opt-b-3">
+      <div class="card-img-wrap">
+        <div class="img-bg">
+          <span class="initials">Ti</span>
+        </div>
+        <span class="badge badge-postre">Postre</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">Tiramisú</div>
+        <span class="card-time">35 min + reposo</span>
+      </div>
+    </div>
+    <div class="card opt-b" style="">
+      <div class="card-img-wrap">
+        <div class="img-bg" style="background: linear-gradient(135deg, #c8d4f8 0%, #3a5bd9 100%);">
+          <span class="initials">VL</span>
+        </div>
+        <span class="badge badge-salado">Salado</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">Verdinas con langostinos</div>
+        <span class="card-time">2-3 horas</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- OPCIÓN C -->
+<div class="section">
+  <div class="section-title">Opción C — Gradiente por carpeta</div>
+  <div class="section-desc">Solo gradiente de color, sin icono. Cada carpeta tiene su propio par de colores. Limpio y moderno.</div>
+  <div class="cards">
+    <div class="card">
+      <div class="card-img-wrap">
+        <div class="img-bg opt-c carne-grad"></div>
+        <span class="badge badge-carpeta" style="background:#d4613a;">Carne</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">Pollo Asado</div>
+        <span class="card-time">1 h 30 min</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img-wrap">
+        <div class="img-bg opt-c pasta-grad"></div>
+        <span class="badge badge-carpeta" style="background:#c04e22;">Pasta</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">Carbonara</div>
+        <span class="card-time">20 min</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img-wrap">
+        <div class="img-bg opt-c verduras-grad"></div>
+        <span class="badge badge-carpeta" style="background:#4d9e5a;">Verduras</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">Gratin Dauphinoise</div>
+        <span class="card-time">40-45 min</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img-wrap">
+        <div class="img-bg opt-c postre-grad"></div>
+        <span class="badge badge-carpeta" style="background:#e05870;">Postres</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">Tiramisú</div>
+        <span class="card-time">35 min + reposo</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-img-wrap">
+        <div class="img-bg opt-c bebidas-grad"></div>
+        <span class="badge badge-carpeta" style="background:#3a5bd9;">Bebidas</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">Mojito</div>
+        <span class="card-time">5 min</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- OPCIÓN D -->
+<div class="section">
+  <div class="section-title">Opción D — Icono sobre gradiente (A + C combinadas)</div>
+  <div class="section-desc">El icono de la carpeta centrado sobre el gradiente de su categoría. Más visual que A, más rico que C.</div>
+  <div class="cards">
+    <!-- Carne -->
+    <div class="card opt-d">
+      <div class="card-img-wrap">
+        <div class="img-bg carne-grad">
+          <svg class="folder-icon-big" viewBox="0 0 32 32" fill="none" stroke="rgba(255,255,255,0.92)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="20" cy="11" r="8"/><path d="M14 17L5 26"/><circle cx="4.5" cy="26.5" r="2.5" fill="rgba(255,255,255,0.92)" stroke="none"/>
+          </svg>
+        </div>
+        <span class="badge badge-carpeta" style="background:#d4613a;">Carne</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">Pollo Asado</div>
+        <span class="card-time">1 h 30 min</span>
+      </div>
+    </div>
+    <!-- Pasta -->
+    <div class="card opt-d">
+      <div class="card-img-wrap">
+        <div class="img-bg pasta-grad">
+          <svg class="folder-icon-big" viewBox="0 0 32 32" fill="none" stroke="rgba(255,255,255,0.92)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 17H26L24 27H8Z"/><line x1="4" y1="17" x2="28" y2="17"/><path d="M10 13Q11 10 10 7"/><path d="M16 12Q17 9 16 6"/><path d="M22 13Q23 10 22 7"/>
+          </svg>
+        </div>
+        <span class="badge badge-carpeta" style="background:#c04e22;">Pasta</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">Carbonara</div>
+        <span class="card-time">20 min</span>
+      </div>
+    </div>
+    <!-- Verduras -->
+    <div class="card opt-d">
+      <div class="card-img-wrap">
+        <div class="img-bg verduras-grad">
+          <svg class="folder-icon-big" viewBox="0 0 32 32" fill="none" stroke="rgba(255,255,255,0.92)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 27C16 27 6 20 6 13A10 10 0 0 1 26 13C26 20 16 27 16 27Z"/><line x1="16" y1="27" x2="16" y2="14"/><path d="M16 22L11 18"/><path d="M16 19L21 15"/>
+          </svg>
+        </div>
+        <span class="badge badge-carpeta" style="background:#4d9e5a;">Verduras</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">Gratin Dauphinoise</div>
+        <span class="card-time">40-45 min</span>
+      </div>
+    </div>
+    <!-- Repostería -->
+    <div class="card opt-d">
+      <div class="card-img-wrap">
+        <div class="img-bg" style="background: linear-gradient(135deg, #c8c8d8 0%, #3a3a4a 100%);">
+          <svg class="folder-icon-big" viewBox="0 0 32 32" fill="none" stroke="rgba(255,255,255,0.92)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="10" y1="5" x2="10" y2="27"/><path d="M7 5V13C7 13 7 16 10 16C13 16 13 13 13 13V5"/><line x1="22" y1="5" x2="22" y2="27"/><path d="M18 5L22 10L26 5"/>
+          </svg>
+        </div>
+        <span class="badge badge-carpeta" style="background:#3a3a4a;">Repostería</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">Banana Bread</div>
+        <span class="card-time">45-50 min</span>
+      </div>
+    </div>
+    <!-- Postres -->
+    <div class="card opt-d">
+      <div class="card-img-wrap">
+        <div class="img-bg postre-grad">
+          <svg class="folder-icon-big" viewBox="0 0 32 32" fill="none" stroke="rgba(255,255,255,0.92)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M7 25L16 8L25 25Z"/><line x1="7" y1="25" x2="25" y2="25"/><circle cx="12" cy="21" r="2" fill="rgba(255,255,255,0.92)" stroke="none"/><circle cx="16" cy="19" r="2" fill="rgba(255,255,255,0.92)" stroke="none"/><circle cx="20" cy="21" r="2" fill="rgba(255,255,255,0.92)" stroke="none"/><line x1="15" y1="8" x2="15" y2="4"/><circle cx="15" cy="3" r="1.5" fill="rgba(255,255,255,0.92)" stroke="none"/>
+          </svg>
+        </div>
+        <span class="badge badge-carpeta" style="background:#e05870;">Postres</span>
+      </div>
+      <div class="card-body">
+        <div class="card-title">Tiramisú</div>
+        <span class="card-time">35 min + reposo</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

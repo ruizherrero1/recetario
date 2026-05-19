@@ -13,7 +13,16 @@
       "Bash(git checkout *)",
       "Read(//c/Users/ramon/Downloads/**)",
       "Bash(powershell -Command \"Expand-Archive -Path 'Recetario-20260519T164620Z-3-001.zip' -DestinationPath 'RecetarioTemp' -Force\")",
-      "Bash(dir RecetarioTemp /s /b)"
+      "Bash(dir RecetarioTemp /s /b)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(where python *)",
+      "Bash(where python3 *)",
+      "Bash(where node *)",
+      "Bash(git commit *)",
+      "PowerShell(python3 --version 2>$null)",
+      "PowerShell(py --version 2>$null)",
+      "PowerShell(node --version 2>$null)",
+      "PowerShell(npx --version 2>$null)"
     ]
   }
 }
