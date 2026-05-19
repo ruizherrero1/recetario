@@ -135,11 +135,14 @@ button { cursor: pointer; border: none; background: none; }
 .topbar-title {
   margin: 0;
   font-family: var(--disp);
-  font-size: 1.3rem;
+  font-size: 1.45rem;
   font-weight: 700;
   color: var(--brand);
-  line-height: 1;
+  line-height: 1.1;
   letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  height: 100%;
 }
 .icon-button {
   width: 44px;
