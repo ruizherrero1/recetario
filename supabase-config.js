@@ -1,8 +1,7 @@
-// Configuracion del proyecto Supabase del recetario.
-// Si url o publishableKey estan vacios, la app funciona en el modo
-// clasico (codigo compartido + local + Drive), igual que hasta ahora.
-// Ver SETUP_SUPABASE.md para crear el proyecto y rellenar esto.
+// Proyecto Supabase compartido con GymLog-Web (tablas y RLS propios del
+// recetario). La publishable key es publica por diseno; la seguridad real
+// la ponen las policies RLS. Ver SETUP_SUPABASE.md.
 window.RECETARIO_SUPABASE_CONFIG = {
-  url: "",
-  publishableKey: ""
+  url: "https://tnuohiyrwnoqsnxyfonn.supabase.co",
+  publishableKey: "sb_publishable__hfnlx_lrL6XI05FZyITLA_L6aUzK2A"
 };
