@@ -989,3 +989,26 @@ dialog::backdrop { background: rgba(42,31,23,0.35); backdrop-filter: blur(4px); 
   #detailView { display: block !important; }
   .recipe-detail { border: 0; box-shadow: none; padding: 18mm; max-width: none; }
 }
+
+/* ── Modo nube: lista de recetarios en la pantalla de entrada ── */
+.cookbook-list {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.cookbook-list .cookbook-item {
+  width: 100%;
+  justify-content: center;
+}
+
+#cloudLogin .primary-button,
+#cloudCookbooks .secondary-button,
+#cloudCookbooks .ghost-button {
+  width: 100%;
+  margin-top: 6px;
+}
+
+#loginCodeStep {
+  margin-top: 10px;
+}

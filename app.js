@@ -1,8 +1,19 @@
+import * as cloud from "./supabase-store.js";
+
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => Array.from(document.querySelectorAll(selector));
 
 const state = {
   cookbookId: "",
+  cloud: {
+    enabled: false,
+    session: null,
+    cookbooks: [],
+    cookbookId: "",
+    cookbookName: "",
+    isOwner: false,
+    syncing: false
+  },
   recipes: [],
   activeRecipeId: "",
   folderFilter: "",
@@ -101,7 +112,9 @@ if ("serviceWorker" in navigator) {
 }
 
 const savedCookbook = localStorage.getItem("recetario:lastCookbookCode");
-if (savedCookbook) {
+if (cloud.supabaseConfigured()) {
+  initCloudMode();
+} else if (savedCookbook) {
   $("#cookbookCode").value = savedCookbook;
   unlock();
 } else {
@@ -130,6 +143,22 @@ function bindEvents() {
   $("#changeCodeButton")?.addEventListener("click", changeCode);
   $("#exportButton")?.addEventListener("click", exportBackup);
   $("#importBackupInput")?.addEventListener("change", importBackup);
+  $("#sendCodeButton")?.addEventListener("click", sendLoginCodeFromForm);
+  $("#resendCodeButton")?.addEventListener("click", sendLoginCodeFromForm);
+  $("#verifyCodeButton")?.addEventListener("click", verifyLoginFromForm);
+  $("#loginCode")?.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") verifyLoginFromForm();
+  });
+  $("#loginEmail")?.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") sendLoginCodeFromForm();
+  });
+  $("#redeemInviteButton")?.addEventListener("click", redeemInviteFromForm);
+  $("#createCookbookButton")?.addEventListener("click", createCookbookFromForm);
+  $("#lockSignOutButton")?.addEventListener("click", cloudSignOut);
+  $("#cloudInviteButton")?.addEventListener("click", createInviteFromSettings);
+  $("#cloudImportLocalButton")?.addEventListener("click", importLocalIntoCloud);
+  $("#cloudSwitchButton")?.addEventListener("click", switchCookbook);
+  $("#cloudSignOutButton")?.addEventListener("click", cloudSignOut);
   $("#driveConnectButton")?.addEventListener("click", () => connectGoogleDrive());
   $("#driveRefreshButton")?.addEventListener("click", () => refreshFromDrive(true));
   $("#driveExportButton")?.addEventListener("click", () => exportRecipesToDrive(state.recipes));
@@ -201,6 +230,279 @@ async function unlock() {
   setTimeout(() => connectGoogleDrive({ silent: true }), 300);
 }
 
+// ═══════════════════════════════════════════════════════════
+// MODO NUBE (Supabase): cuentas por email y recetarios compartidos
+// ═══════════════════════════════════════════════════════════
+
+async function initCloudMode() {
+  state.cloud.enabled = true;
+  $("#legacyLock")?.classList.add("hidden");
+
+  // Cubre el aterrizaje desde un email de invitacion (token en la URL).
+  cloud.onAuthChange((session) => {
+    if (session && !state.cloud.session) cloudAfterLogin(session);
+  });
+
+  try {
+    const session = await cloud.getSession();
+    if (session) {
+      await cloudAfterLogin(session);
+      return;
+    }
+  } catch (error) {
+    // Sin red (p. ej. PWA offline): abre el ultimo recetario con el cache local.
+    console.error(error);
+    if (offlineCookbookFallback()) return;
+  }
+  showCloudPanel("login");
+}
+
+function offlineCookbookFallback() {
+  const lastId = localStorage.getItem("recetario:lastCloudCookbook");
+  if (!lastId) return false;
+  const name = localStorage.getItem("recetario:lastCloudCookbookName") || "Recetario";
+  openCloudCookbook({ id: lastId, name, owner_id: "" });
+  return true;
+}
+
+function showCloudPanel(which) {
+  $("#cloudLogin")?.classList.toggle("hidden", which !== "login");
+  $("#cloudCookbooks")?.classList.toggle("hidden", which !== "cookbooks");
+  const message = $("#lockMessage");
+  if (message) message.textContent = "";
+}
+
+async function cloudAfterLogin(session) {
+  if (state.cloud.session && state.cloud.cookbookId) return;
+  state.cloud.session = session;
+  try {
+    state.cloud.cookbooks = await cloud.listCookbooks();
+  } catch (error) {
+    console.error(error);
+    if (offlineCookbookFallback()) return;
+    $("#lockMessage").textContent = "No se pudieron cargar tus recetarios. Revisa la conexion.";
+    showCloudPanel("cookbooks");
+    return;
+  }
+
+  const lastId = localStorage.getItem("recetario:lastCloudCookbook");
+  const last = state.cloud.cookbooks.find((cookbook) => cookbook.id === lastId);
+  if (last) {
+    openCloudCookbook(last);
+    return;
+  }
+  if (state.cloud.cookbooks.length === 1) {
+    openCloudCookbook(state.cloud.cookbooks[0]);
+    return;
+  }
+  renderCookbookList();
+  showCloudPanel("cookbooks");
+}
+
+function renderCookbookList() {
+  const list = $("#cookbookList");
+  if (!list) return;
+  list.innerHTML = (state.cloud.cookbooks || []).map((cookbook) =>
+    `<button type="button" class="secondary-button cookbook-item" data-id="${escapeAttr(cookbook.id)}">${escapeHtml(cookbook.name)}</button>`
+  ).join("") || `<p class="muted">Aun no eres miembro de ningun recetario. Canjea una invitacion o crea uno nuevo.</p>`;
+  list.querySelectorAll(".cookbook-item").forEach((button) => {
+    button.addEventListener("click", () => {
+      const cookbook = state.cloud.cookbooks.find((item) => item.id === button.dataset.id);
+      if (cookbook) openCloudCookbook(cookbook);
+    });
+  });
+}
+
+function openCloudCookbook(cookbook) {
+  state.cloud.cookbookId = cookbook.id;
+  state.cloud.cookbookName = cookbook.name;
+  state.cloud.isOwner = cookbook.owner_id === state.cloud.session?.user?.id;
+  state.cookbookId = `sb_${cookbook.id}`; // clave del cache local por recetario
+  localStorage.setItem("recetario:lastCloudCookbook", cookbook.id);
+  localStorage.setItem("recetario:lastCloudCookbookName", cookbook.name);
+  $("#lockScreen")?.classList.add("hidden");
+  $("#appShell")?.classList.remove("hidden");
+  loadLocalRecipes();
+  renderAll();
+  refreshFromCloud(true);
+}
+
+async function refreshFromCloud(uploadPending = false) {
+  if (!state.cloud.cookbookId || state.cloud.syncing) return;
+  state.cloud.syncing = true;
+  setSyncStatus("Sincronizando con el recetario compartido...");
+  try {
+    const localRecipes = [...state.recipes];
+    const remoteRecipes = await cloud.fetchRecipes(state.cloud.cookbookId);
+    const pendingLocal = localRecipes.filter((recipe) => {
+      const remoteRecipe = remoteRecipes.find((item) => sameRecipeIdentity(item, recipe));
+      return !remoteRecipe || dateValue(recipe.updatedAt || recipe.createdAt) > dateValue(remoteRecipe.updatedAt || remoteRecipe.createdAt);
+    });
+    state.recipes = mergeRecipes(localRecipes, remoteRecipes);
+    saveLocalRecipes();
+    renderAll();
+    if (uploadPending) {
+      for (const recipe of pendingLocal) {
+        await cloud.upsertRecipe(state.cloud.cookbookId, normalizeImportedRecipe(recipe));
+      }
+    }
+    setSyncStatus(`"${state.cloud.cookbookName}": ${visibleRecipes().length} receta(s) sincronizadas.`);
+  } catch (error) {
+    console.error(error);
+    setSyncStatus("Sin conexion con el recetario. Trabajas con la copia de este dispositivo.");
+  } finally {
+    state.cloud.syncing = false;
+  }
+}
+
+async function sendLoginCodeFromForm() {
+  const email = $("#loginEmail")?.value.trim().toLowerCase() || "";
+  if (!email.includes("@")) {
+    $("#lockMessage").textContent = "Escribe un email valido.";
+    return;
+  }
+  $("#lockMessage").textContent = "Enviando codigo...";
+  try {
+    await cloud.sendLoginCode(email);
+    $("#loginCodeStep")?.classList.remove("hidden");
+    $("#lockMessage").textContent = "Revisa tu correo y escribe aqui el codigo.";
+    setTimeout(() => $("#loginCode")?.focus(), 80);
+  } catch (error) {
+    $("#lockMessage").textContent = error.message;
+  }
+}
+
+async function verifyLoginFromForm() {
+  const email = $("#loginEmail")?.value.trim().toLowerCase() || "";
+  const token = $("#loginCode")?.value.trim() || "";
+  if (!token) {
+    $("#lockMessage").textContent = "Escribe el codigo que has recibido.";
+    return;
+  }
+  $("#lockMessage").textContent = "Comprobando codigo...";
+  try {
+    const session = await cloud.verifyLoginCode(email, token);
+    await cloudAfterLogin(session);
+  } catch (error) {
+    $("#lockMessage").textContent = error.message;
+  }
+}
+
+async function redeemInviteFromForm() {
+  const code = $("#inviteCodeInput")?.value.trim().toLowerCase() || "";
+  if (!code) {
+    $("#lockMessage").textContent = "Escribe el codigo de invitacion.";
+    return;
+  }
+  $("#lockMessage").textContent = "Canjeando invitacion...";
+  try {
+    const result = await cloud.redeemInvite(code);
+    state.cloud.cookbooks = await cloud.listCookbooks();
+    const cookbook = state.cloud.cookbooks.find((item) => item.id === result?.cookbook_id);
+    if (cookbook) {
+      openCloudCookbook(cookbook);
+    } else {
+      renderCookbookList();
+      $("#lockMessage").textContent = "Invitacion canjeada.";
+    }
+  } catch (error) {
+    $("#lockMessage").textContent = error.message;
+  }
+}
+
+async function createCookbookFromForm() {
+  const name = $("#newCookbookName")?.value.trim() || "";
+  if (name.length < 2) {
+    $("#lockMessage").textContent = "Pon un nombre al recetario.";
+    return;
+  }
+  try {
+    const cookbook = await cloud.createCookbook(name);
+    state.cloud.cookbooks.push(cookbook);
+    openCloudCookbook(cookbook);
+  } catch (error) {
+    console.error(error);
+    $("#lockMessage").textContent = "No se pudo crear el recetario.";
+  }
+}
+
+async function createInviteFromSettings() {
+  if (!state.cloud.cookbookId) return;
+  const result = $("#cloudInviteResult");
+  try {
+    const code = await cloud.createInvite(state.cloud.cookbookId);
+    if (result) {
+      result.textContent = `Codigo: ${code} — un solo uso, caduca en 14 dias. Compartelo con quien quieras invitar.`;
+      result.classList.remove("hidden");
+    }
+    navigator.clipboard?.writeText(code).catch(() => {});
+  } catch (error) {
+    console.error(error);
+    if (result) {
+      result.textContent = "No se pudo crear la invitacion.";
+      result.classList.remove("hidden");
+    }
+  }
+}
+
+async function importLocalIntoCloud() {
+  if (!state.cloud.cookbookId) return;
+  const candidates = [];
+  for (let i = 0; i < localStorage.length; i += 1) {
+    const key = localStorage.key(i);
+    if (!key || key === localKey()) continue;
+    if (!/^recetario:.+:recipes$/.test(key)) continue;
+    try {
+      candidates.push(...JSON.parse(localStorage.getItem(key) || "[]"));
+    } catch {}
+  }
+  if (!candidates.length) {
+    alert("No hay recetas locales de otros recetarios en este dispositivo.");
+    return;
+  }
+  if (!confirm(`Se han encontrado ${candidates.length} receta(s) locales. Importarlas en "${state.cloud.cookbookName}"? (los duplicados se omiten)`)) return;
+  let imported = 0;
+  let skipped = 0;
+  for (const candidate of candidates) {
+    const normalizedRecipe = normalizeImportedRecipe(candidate);
+    if (normalizedRecipe.deletedAt || !normalizedRecipe.title) continue;
+    if (findDuplicateRecipe(normalizedRecipe)) {
+      skipped += 1;
+      continue;
+    }
+    await saveRecipe(normalizedRecipe);
+    imported += 1;
+  }
+  renderAll();
+  alert(`Importadas: ${imported}. Omitidas por posible duplicado: ${skipped}.`);
+}
+
+function switchCookbook() {
+  $("#settingsDialog")?.close();
+  localStorage.removeItem("recetario:lastCloudCookbook");
+  state.cloud.cookbookId = "";
+  state.cloud.cookbookName = "";
+  state.cloud.isOwner = false;
+  state.recipes = [];
+  state.activeRecipeId = "";
+  $("#appShell")?.classList.add("hidden");
+  $("#lockScreen")?.classList.remove("hidden");
+  cloud.listCookbooks()
+    .then((cookbooks) => { state.cloud.cookbooks = cookbooks; renderCookbookList(); })
+    .catch(() => {});
+  renderCookbookList();
+  showCloudPanel("cookbooks");
+}
+
+async function cloudSignOut() {
+  $("#settingsDialog")?.close();
+  try {
+    await cloud.signOut();
+  } catch {}
+  localStorage.removeItem("recetario:lastCloudCookbook");
+  location.reload();
+}
+
 function loadLocalRecipes() {
   try {
     state.recipes = normalizeRecipes(JSON.parse(localStorage.getItem(localKey()) || "[]"));
@@ -241,6 +543,17 @@ async function saveRecipe(recipe) {
   saveLocalRecipes();
   renderAll();
 
+  if (state.cloud.cookbookId) {
+    try {
+      await cloud.upsertRecipe(state.cloud.cookbookId, normalizedRecipe);
+      setSyncStatus("Guardada en el recetario compartido.");
+    } catch (error) {
+      console.error(error);
+      setSyncStatus("Guardada en este dispositivo. Sin conexion: se subira al sincronizar.");
+    }
+    return;
+  }
+
   if (state.drive.ready) {
     try {
       await writeRecipeToDrive(normalizedRecipe);
@@ -254,10 +567,12 @@ async function deleteRecipe(recipeId) {
   const recipe = state.recipes.find((item) => item.id === recipeId);
   if (!recipe || !confirm(`Eliminar "${recipe.title}"?`)) return;
 
-  try {
-    await createDriveBackup("antes-de-eliminar", state.recipes, false);
-  } catch (error) {
-    console.warn("No se pudo crear backup antes de eliminar", error);
+  if (state.drive.ready) {
+    try {
+      await createDriveBackup("antes-de-eliminar", state.recipes, false);
+    } catch (error) {
+      console.warn("No se pudo crear backup antes de eliminar", error);
+    }
   }
   const now = new Date().toISOString();
   const tombstone = {
@@ -272,6 +587,17 @@ async function deleteRecipe(recipeId) {
   saveLocalRecipes();
   renderAll();
   showView("listView");
+
+  if (state.cloud.cookbookId) {
+    try {
+      await cloud.upsertRecipe(state.cloud.cookbookId, tombstone);
+      setSyncStatus("Eliminada del recetario compartido.");
+    } catch (error) {
+      console.error(error);
+      setSyncStatus("Eliminada en este dispositivo. Se aplicara al sincronizar.");
+    }
+    return;
+  }
 
   if (state.drive.ready) {
     try {
@@ -1074,11 +1400,26 @@ function cleanBullet(line) {
 }
 
 function openSettings() {
-  $("#settingsSyncText").textContent = state.drive.ready
-    ? "Google Drive esta conectado. Las recetas se leen y guardan como archivos JSON."
-    : "Conecta Google Drive en cada dispositivo para compartir el mismo recetario.";
+  const cloudMode = Boolean(state.cloud.cookbookId);
+  $("#cloudGroup")?.classList.toggle("hidden", !cloudMode);
+  $("#driveGroup")?.classList.toggle("hidden", cloudMode);
+  $("#changeCodeButton")?.classList.toggle("hidden", cloudMode);
+
+  if (cloudMode) {
+    $("#settingsSyncText").textContent =
+      `Recetario "${state.cloud.cookbookName}" compartido en la nube. Los cambios se sincronizan entre todos los miembros.`;
+    $("#cloudAccountText").textContent =
+      `Sesion iniciada como ${state.cloud.session?.user?.email || ""}.` +
+      (state.cloud.isOwner ? " Eres el dueno de este recetario." : "");
+    $("#cloudInviteButton")?.classList.toggle("hidden", !state.cloud.isOwner);
+    $("#cloudInviteResult")?.classList.add("hidden");
+  } else {
+    $("#settingsSyncText").textContent = state.drive.ready
+      ? "Google Drive esta conectado. Las recetas se leen y guardan como archivos JSON."
+      : "Conecta Google Drive en cada dispositivo para compartir el mismo recetario.";
+    renderDriveStatus();
+  }
   renderBackupStatus();
-  renderDriveStatus();
   $("#settingsDialog")?.showModal();
 }
 
@@ -1097,10 +1438,12 @@ function exportBackup() {
 async function importBackup(event) {
   const file = event.target.files[0];
   if (!file) return;
-  try {
-    await createDriveBackup("antes-de-importar", state.recipes, false);
-  } catch (error) {
-    console.warn("No se pudo crear backup antes de importar", error);
+  if (state.drive.ready) {
+    try {
+      await createDriveBackup("antes-de-importar", state.recipes, false);
+    } catch (error) {
+      console.warn("No se pudo crear backup antes de importar", error);
+    }
   }
   const payload = JSON.parse(await file.text());
   const recipes = Array.isArray(payload) ? payload : (Array.isArray(payload.recipes) ? payload.recipes : []);

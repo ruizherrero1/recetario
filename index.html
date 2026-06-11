@@ -15,6 +15,7 @@
 <link rel="stylesheet" href="mobile-grid.css">
 <link rel="stylesheet" href="logo-theme.css">
 <script src="drive-config.js"></script>
+<script src="supabase-config.js"></script>
 <script src="import-recipe.js" defer></script>
 </head>
 <body>
@@ -32,14 +33,62 @@
       <p id="lockRecipeCount" class="lock-recipe-count"></p>
     </div>
 
-    <p class="muted">Introduce el código del recetario. Compartid el mismo código en los dos móviles para ver las mismas recetas.</p>
+    <!-- Modo clásico: código compartido (cuando Supabase no está configurado) -->
+    <div id="legacyLock">
+      <p class="muted">Introduce el código del recetario. Compartid el mismo código en los dos móviles para ver las mismas recetas.</p>
 
-    <label class="field">
-      <span>Código</span>
-      <input id="cookbookCode" type="text" autocomplete="off" placeholder="Ej. recetas-casa-2026">
-    </label>
+      <label class="field">
+        <span>Código</span>
+        <input id="cookbookCode" type="text" autocomplete="off" placeholder="Ej. recetas-casa-2026">
+      </label>
 
-    <button id="unlockButton" class="primary-button">Entrar</button>
+      <button id="unlockButton" class="primary-button">Entrar</button>
+    </div>
+
+    <!-- Modo nube: login con email (código de un solo uso) -->
+    <div id="cloudLogin" class="hidden">
+      <p class="muted">Entra con tu email. Te enviaremos un código de un solo uso. Solo pueden entrar cuentas invitadas.</p>
+
+      <label class="field">
+        <span>Email</span>
+        <input id="loginEmail" type="email" autocomplete="email" placeholder="tu@email.com">
+      </label>
+      <button id="sendCodeButton" class="primary-button">Enviar código</button>
+
+      <div id="loginCodeStep" class="hidden">
+        <label class="field">
+          <span>Código recibido por email</span>
+          <input id="loginCode" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="123456">
+        </label>
+        <button id="verifyCodeButton" class="primary-button">Entrar</button>
+        <button id="resendCodeButton" type="button" class="ghost-button">Enviar otro código</button>
+      </div>
+    </div>
+
+    <!-- Modo nube: elegir recetario o canjear invitación -->
+    <div id="cloudCookbooks" class="hidden">
+      <p class="muted">Elige un recetario o canjea un código de invitación.</p>
+
+      <div id="cookbookList" class="cookbook-list"></div>
+
+      <label class="field">
+        <span>Código de invitación</span>
+        <input id="inviteCodeInput" type="text" autocomplete="off" placeholder="código que te han pasado">
+      </label>
+      <button id="redeemInviteButton" class="secondary-button">Canjear invitación</button>
+
+      <details class="install-help">
+        <summary>Crear un recetario nuevo</summary>
+        <label class="field">
+          <span>Nombre del recetario</span>
+          <input id="newCookbookName" type="text" placeholder="Recetario de casa">
+        </label>
+        <button id="createCookbookButton" type="button" class="secondary-button">Crear recetario</button>
+      </details>
+
+      <button id="lockSignOutButton" type="button" class="ghost-button">Cerrar sesión</button>
+    </div>
+
     <p id="lockMessage" class="message"></p>
 
   </section>
@@ -297,6 +346,16 @@
 
     <p id="settingsSyncText" class="muted"></p>
     <p id="backupStatus" class="muted"></p>
+
+    <div class="settings-group hidden" id="cloudGroup">
+      <h3>Cuenta y recetario</h3>
+      <p id="cloudAccountText" class="muted"></p>
+      <button id="cloudInviteButton" type="button" class="secondary-button hidden">Crear código de invitación</button>
+      <p id="cloudInviteResult" class="muted hidden"></p>
+      <button id="cloudImportLocalButton" type="button" class="secondary-button">Importar recetas locales de este dispositivo</button>
+      <button id="cloudSwitchButton" type="button" class="secondary-button">Cambiar de recetario</button>
+      <button id="cloudSignOutButton" type="button" class="ghost-button">Cerrar sesión</button>
+    </div>
 
     <div class="settings-group" id="driveGroup">
       <h3>Google Drive</h3>

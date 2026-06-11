@@ -1,4 +1,4 @@
-const CACHE_NAME = "recetario-v34";
+const CACHE_NAME = "recetario-v35";
 const ASSETS = [
   "./",
   "./index.html",
@@ -6,6 +6,8 @@ const ASSETS = [
   "./mobile-grid.css",
   "./logo-theme.css",
   "./drive-config.js",
+  "./supabase-config.js",
+  "./supabase-store.js",
   "./app.js",
   "./import-recipe.js",
   "./logo.png",
@@ -43,7 +45,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  if (url.pathname.endsWith("/drive-config.js")) {
+  if (url.pathname.endsWith("/drive-config.js") || url.pathname.endsWith("/supabase-config.js")) {
     event.respondWith(networkFirst(event.request));
     return;
   }

@@ -1,10 +1,21 @@
 # Recetario
 
-App movil para guardar recetas, organizarlas por categorias y etiquetas, sincronizarlas entre dos personas y generar una version imprimible/PDF.
+App movil para guardar recetas, organizarlas por categorias y etiquetas, compartirlas con tu familia y generar una version imprimible/PDF.
+
+## Modos de funcionamiento
+
+- **Modo nube (recomendado)**: cuentas por email con codigo de un solo uso y
+  recetarios compartidos por invitacion (p. ej. uno para casa, otro para tus
+  padres). Los datos viven en Supabase con Row Level Security: cada persona ve
+  solo los recetarios donde es miembro. Se activa rellenando
+  `supabase-config.js`; instrucciones completas en `SETUP_SUPABASE.md`.
+- **Modo clasico**: si `supabase-config.js` esta vacio, la app funciona como
+  siempre (codigo compartido + sincronizacion opcional con Google Drive).
 
 ## Que incluye
 
-- Entrada con codigo compartido, sin pantalla de login.
+- Entrada con codigo compartido, sin pantalla de login (modo clasico) o login
+  por email con recetarios compartidos (modo nube).
 - Listado de recetas con busqueda, filtro por categoria y ordenacion.
 - Una receta puede tener varias categorias.
 - Campo `Link` para guardar la web original y abrirla desde la receta.
