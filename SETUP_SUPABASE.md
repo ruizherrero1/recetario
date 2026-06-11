@@ -4,55 +4,55 @@ Pasos para activar cuentas por email y recetarios compartidos por invitacion.
 Mientras `supabase-config.js` este vacio, la app sigue funcionando en el modo
 clasico (codigo compartido + Drive), asi que se puede desplegar sin riesgo.
 
-## 1. Crear el proyecto
+> **Estado actual**: el recetario reutiliza el proyecto Supabase de
+> GymLog-Web (`tnuohiyrwnoqsnxyfonn`) porque el plan gratuito limita a 2
+> proyectos activos. Las tablas del recetario tienen su propio RLS y no
+> tocan nada de GymLog. La migracion (paso 2) ya esta ejecutada y
+> `supabase-config.js` ya esta relleno. Una misma cuenta de email sirve
+> para GymLog y para el recetario.
 
-1. Entra en <https://supabase.com/dashboard> y crea un proyecto nuevo
-   (p. ej. `recetario`). Region: `eu-west` (Irlanda u otra de Europa).
-2. Guarda la contrasena de la base de datos en tu gestor de contrasenas.
+## 1. Proyecto
 
-## 2. Ejecutar la migracion
+Reutilizamos `gymlog-web`. Si algun dia se quiere separar: crear proyecto
+nuevo, ejecutar la migracion alli y cambiar `supabase-config.js`.
 
-1. En el dashboard, abre `SQL Editor`.
-2. Pega el contenido completo de
-   `supabase/migrations/202606110001_recetario_multiusuario.sql` y ejecutalo.
-3. Debe terminar sin errores (crea 4 tablas, funciones, triggers y policies).
+## 2. Ejecutar la migracion (hecho)
 
-## 3. Cerrar el registro (solo por invitacion)
+En `SQL Editor`, pegar y ejecutar
+`supabase/migrations/202606110001_recetario_multiusuario.sql`
+(crea 4 tablas, funciones, triggers y policies).
 
-1. `Authentication > Sign In / Providers`: deja solo `Email` activado.
-2. En `Email`, desactiva la confirmacion doble si quieres simplificar, y
-   sobre todo: en `Authentication > Settings`, **desactiva**
-   `Allow new users to sign up`.
-3. `Authentication > Emails > Magic Link`: asegurate de que la plantilla
-   incluye el codigo OTP ademas del enlace, anadiendo `{{ .Token }}`:
+## 3. Registro
 
-   ```html
-   <p>Tu codigo de acceso: {{ .Token }}</p>
-   ```
+El registro global queda **abierto** porque GymLog-Web lo usa. El acceso a
+los recetarios sigue siendo solo por invitacion: sin membresia (codigo de
+invitacion canjeado) no se ve ningun dato — lo garantiza RLS, y la app de
+recetario no crea cuentas (`shouldCreateUser: false`).
 
-   La app pide ese codigo de 6 digitos (funciona mejor que el enlace dentro
-   de la PWA instalada en iPhone).
+La plantilla `Authentication > Emails > Magic Link` debe incluir el codigo
+OTP ademas del enlace, anadiendo `{{ .Token }}`:
 
-## 4. URL del sitio
-
-En `Authentication > URL Configuration`:
-
-- `Site URL`: `https://ruizherrero1.github.io/recetario/`
-- Anade esa misma URL a `Redirect URLs`.
-
-## 5. Configurar la app
-
-En `Project Settings > API` copia la `URL` y la `publishable key` y rellena
-`supabase-config.js`:
-
-```js
-window.RECETARIO_SUPABASE_CONFIG = {
-  url: "https://TUPROYECTO.supabase.co",
-  publishableKey: "sb_publishable_..."
-};
+```html
+<p>O escribe este codigo en la app: <strong>{{ .Token }}</strong></p>
 ```
 
-Sube el cambio a `main` (GitHub Pages publica solo). La publishable key es
+La app de recetario pide ese codigo de 6 digitos (funciona mejor que el
+enlace dentro de la PWA instalada en iPhone). El enlace debe mantenerse
+para no cambiar el flujo de GymLog.
+
+## 4. URLs permitidas
+
+En `Authentication > URL Configuration`, **anadir** a `Redirect URLs` (sin
+quitar las de GymLog):
+
+- `https://ruizherrero1.github.io`
+- `https://ruizherrero1.github.io/**`
+
+`Site URL` se queda como esta (`https://gym.ramonruizherrero.com`).
+
+## 5. Configurar la app (hecho)
+
+`supabase-config.js` ya apunta al proyecto compartido. La publishable key es
 publica por diseno; la seguridad real la ponen las policies RLS.
 
 ## 6. Crear cuentas e invitar
