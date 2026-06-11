@@ -361,12 +361,11 @@ async function sendLoginCodeFromForm() {
     $("#lockMessage").textContent = "Escribe un email valido.";
     return;
   }
-  $("#lockMessage").textContent = "Enviando codigo...";
+  $("#lockMessage").textContent = "Enviando email de acceso...";
   try {
     await cloud.sendLoginCode(email);
     $("#loginCodeStep")?.classList.remove("hidden");
-    $("#lockMessage").textContent = "Revisa tu correo y escribe aqui el codigo.";
-    setTimeout(() => $("#loginCode")?.focus(), 80);
+    $("#lockMessage").textContent = "Revisa tu correo: pulsa el enlace en este dispositivo para entrar.";
   } catch (error) {
     $("#lockMessage").textContent = error.message;
   }

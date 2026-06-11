@@ -38,13 +38,17 @@ export async function onAuthChange(callback) {
   } catch {}
 }
 
-// Envia un codigo de un solo uso al email. shouldCreateUser: false porque el
-// registro esta cerrado: las cuentas se crean invitando desde Supabase.
+// Envia un email de acceso con enlace magico (y codigo OTP si la plantilla
+// del proyecto lo incluye). shouldCreateUser: false: la app no crea cuentas,
+// se invita desde Supabase.
 export async function sendLoginCode(email) {
   const client = await getClient();
   const { error } = await client.auth.signInWithOtp({
     email,
-    options: { shouldCreateUser: false }
+    options: {
+      shouldCreateUser: false,
+      emailRedirectTo: location.origin + location.pathname
+    }
   });
   if (error) throw new Error(translateAuthError(error));
 }

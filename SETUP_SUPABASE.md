@@ -29,16 +29,17 @@ los recetarios sigue siendo solo por invitacion: sin membresia (codigo de
 invitacion canjeado) no se ve ningun dato — lo garantiza RLS, y la app de
 recetario no crea cuentas (`shouldCreateUser: false`).
 
-La plantilla `Authentication > Emails > Magic Link` debe incluir el codigo
-OTP ademas del enlace, anadiendo `{{ .Token }}`:
+**Login por enlace magico.** El plan gratuito no permite editar las
+plantillas de email sin configurar un SMTP propio, asi que el email de
+acceso trae solo el enlace (sin codigo). La app envia el enlace con
+redireccion al propio recetario y detecta la sesion al aterrizar.
 
-```html
-<p>O escribe este codigo en la app: <strong>{{ .Token }}</strong></p>
-```
-
-La app de recetario pide ese codigo de 6 digitos (funciona mejor que el
-enlace dentro de la PWA instalada en iPhone). El enlace debe mantenerse
-para no cambiar el flujo de GymLog.
+Mejora opcional futura: configurar un SMTP gratuito (Resend, Brevo...) en
+`Project Settings > Auth > SMTP` permite editar la plantilla y anadir
+`{{ .Token }}` para entrar tecleando un codigo de 6 digitos — util en la
+PWA instalada en iPhone, donde el enlace abre Safari en lugar de la app.
+El campo de codigo ya esta en la pantalla de login, esperando a eso. El
+enlace debe mantenerse en la plantilla para no cambiar el flujo de GymLog.
 
 ## 4. URLs permitidas
 

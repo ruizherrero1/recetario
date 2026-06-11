@@ -45,23 +45,24 @@
       <button id="unlockButton" class="primary-button">Entrar</button>
     </div>
 
-    <!-- Modo nube: login con email (código de un solo uso) -->
+    <!-- Modo nube: login con email (enlace mágico, y código si la plantilla lo incluye) -->
     <div id="cloudLogin" class="hidden">
-      <p class="muted">Entra con tu email. Te enviaremos un código de un solo uso. Solo pueden entrar cuentas invitadas.</p>
+      <p class="muted">Entra con tu email. Te enviaremos un enlace de acceso de un solo uso. Solo pueden entrar cuentas invitadas.</p>
 
       <label class="field">
         <span>Email</span>
         <input id="loginEmail" type="email" autocomplete="email" placeholder="tu@email.com">
       </label>
-      <button id="sendCodeButton" class="primary-button">Enviar código</button>
+      <button id="sendCodeButton" class="primary-button">Enviar email de acceso</button>
 
       <div id="loginCodeStep" class="hidden">
+        <p class="muted">Pulsa el enlace del email en este dispositivo. Si el email incluye un código, también puedes escribirlo aquí:</p>
         <label class="field">
-          <span>Código recibido por email</span>
+          <span>Código (si aparece en el email)</span>
           <input id="loginCode" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="123456">
         </label>
-        <button id="verifyCodeButton" class="primary-button">Entrar</button>
-        <button id="resendCodeButton" type="button" class="ghost-button">Enviar otro código</button>
+        <button id="verifyCodeButton" class="primary-button">Entrar con código</button>
+        <button id="resendCodeButton" type="button" class="ghost-button">Enviar otro email</button>
       </div>
     </div>
 
