@@ -143,14 +143,15 @@ function bindEvents() {
   $("#changeCodeButton")?.addEventListener("click", changeCode);
   $("#exportButton")?.addEventListener("click", exportBackup);
   $("#importBackupInput")?.addEventListener("change", importBackup);
+  $("#passwordLoginButton")?.addEventListener("click", passwordLoginFromForm);
+  $("#signupButton")?.addEventListener("click", signupFromForm);
   $("#sendCodeButton")?.addEventListener("click", sendLoginCodeFromForm);
-  $("#resendCodeButton")?.addEventListener("click", sendLoginCodeFromForm);
-  $("#verifyCodeButton")?.addEventListener("click", verifyLoginFromForm);
-  $("#loginCode")?.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") verifyLoginFromForm();
+  $("#changePasswordButton")?.addEventListener("click", changePasswordFromSettings);
+  $("#loginPassword")?.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") passwordLoginFromForm();
   });
   $("#loginEmail")?.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") sendLoginCodeFromForm();
+    if (event.key === "Enter") $("#loginPassword")?.focus();
   });
   $("#redeemInviteButton")?.addEventListener("click", redeemInviteFromForm);
   $("#createCookbookButton")?.addEventListener("click", createCookbookFromForm);
@@ -355,6 +356,50 @@ async function refreshFromCloud(uploadPending = false) {
   }
 }
 
+function readLoginForm() {
+  const email = $("#loginEmail")?.value.trim().toLowerCase() || "";
+  const password = $("#loginPassword")?.value || "";
+  if (!email.includes("@")) {
+    $("#lockMessage").textContent = "Escribe un email valido.";
+    return null;
+  }
+  if (password.length < 6) {
+    $("#lockMessage").textContent = "La contraseña debe tener al menos 6 caracteres.";
+    return null;
+  }
+  return { email, password };
+}
+
+async function passwordLoginFromForm() {
+  const form = readLoginForm();
+  if (!form) return;
+  $("#lockMessage").textContent = "Entrando...";
+  try {
+    const session = await cloud.signInWithPassword(form.email, form.password);
+    await cloudAfterLogin(session);
+  } catch (error) {
+    $("#lockMessage").textContent = error.message;
+  }
+}
+
+async function signupFromForm() {
+  const form = readLoginForm();
+  if (!form) return;
+  $("#lockMessage").textContent = "Creando cuenta...";
+  try {
+    const session = await cloud.signUpWithPassword(form.email, form.password);
+    if (session) {
+      await cloudAfterLogin(session);
+    } else {
+      $("#lockMessage").textContent =
+        "Cuenta creada. Revisa tu correo para confirmarla y despues entra con tu contraseña.";
+    }
+  } catch (error) {
+    $("#lockMessage").textContent = error.message;
+  }
+}
+
+// Recuperacion de cuenta: enlace de acceso de un solo uso por email.
 async function sendLoginCodeFromForm() {
   const email = $("#loginEmail")?.value.trim().toLowerCase() || "";
   if (!email.includes("@")) {
@@ -364,26 +409,30 @@ async function sendLoginCodeFromForm() {
   $("#lockMessage").textContent = "Enviando email de acceso...";
   try {
     await cloud.sendLoginCode(email);
-    $("#loginCodeStep")?.classList.remove("hidden");
-    $("#lockMessage").textContent = "Revisa tu correo: pulsa el enlace en este dispositivo para entrar.";
+    $("#lockMessage").textContent =
+      "Te hemos enviado un enlace de un solo uso. Abrelo en este dispositivo y luego pon una contraseña nueva en Ajustes.";
   } catch (error) {
     $("#lockMessage").textContent = error.message;
   }
 }
 
-async function verifyLoginFromForm() {
-  const email = $("#loginEmail")?.value.trim().toLowerCase() || "";
-  const token = $("#loginCode")?.value.trim() || "";
-  if (!token) {
-    $("#lockMessage").textContent = "Escribe el codigo que has recibido.";
+async function changePasswordFromSettings() {
+  const input = $("#newPasswordInput");
+  const result = $("#passwordChangeResult");
+  const password = input?.value || "";
+  if (!result) return;
+  result.classList.remove("hidden");
+  if (password.length < 6) {
+    result.textContent = "La contraseña debe tener al menos 6 caracteres.";
     return;
   }
-  $("#lockMessage").textContent = "Comprobando codigo...";
+  result.textContent = "Guardando...";
   try {
-    const session = await cloud.verifyLoginCode(email, token);
-    await cloudAfterLogin(session);
+    await cloud.updatePassword(password);
+    if (input) input.value = "";
+    result.textContent = "Contraseña actualizada.";
   } catch (error) {
-    $("#lockMessage").textContent = error.message;
+    result.textContent = error.message;
   }
 }
 

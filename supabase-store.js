@@ -60,6 +60,49 @@ export async function verifyLoginCode(email, token) {
   return data.session;
 }
 
+export async function signInWithPassword(email, password) {
+  const client = await getClient();
+  const { data, error } = await client.auth.signInWithPassword({ email, password });
+  if (error) {
+    if (/invalid login credentials/i.test(String(error.message))) {
+      throw new Error("Email o contraseña incorrectos.");
+    }
+    if (/email not confirmed/i.test(String(error.message))) {
+      throw new Error("Cuenta sin confirmar. Revisa tu correo o pide un enlace de acceso.");
+    }
+    throw new Error(translateAuthError(error));
+  }
+  return data.session;
+}
+
+// Con confirmacion automatica activada en el proyecto, signUp devuelve sesion
+// directamente y no se envia ningun email.
+export async function signUpWithPassword(email, password) {
+  const client = await getClient();
+  const { data, error } = await client.auth.signUp({ email, password });
+  if (error) {
+    if (/already registered|already been registered/i.test(String(error.message))) {
+      throw new Error("Ese email ya tiene cuenta. Entra con tu contraseña.");
+    }
+    if (/at least|password/i.test(String(error.message))) {
+      throw new Error("La contraseña debe tener al menos 6 caracteres.");
+    }
+    throw new Error(translateAuthError(error));
+  }
+  return data.session;
+}
+
+export async function updatePassword(password) {
+  const client = await getClient();
+  const { error } = await client.auth.updateUser({ password });
+  if (error) {
+    if (/different from the old|same password/i.test(String(error.message))) {
+      throw new Error("La nueva contraseña debe ser distinta de la actual.");
+    }
+    throw new Error("No se pudo cambiar la contraseña. Vuelve a intentarlo.");
+  }
+}
+
 export async function signOut() {
   const client = await getClient();
   await client.auth.signOut();

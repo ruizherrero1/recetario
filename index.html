@@ -45,25 +45,22 @@
       <button id="unlockButton" class="primary-button">Entrar</button>
     </div>
 
-    <!-- Modo nube: login con email (enlace mágico, y código si la plantilla lo incluye) -->
+    <!-- Modo nube: login con email y contraseña. El email solo se usa como
+         recuperación (enlace de un solo uso) si alguien olvida su contraseña. -->
     <div id="cloudLogin" class="hidden">
-      <p class="muted">Entra con tu email. Te enviaremos un enlace de acceso de un solo uso. Solo pueden entrar cuentas invitadas.</p>
+      <p class="muted">Entra con tu email y contraseña, o crea tu cuenta si te han pasado un código de invitación.</p>
 
       <label class="field">
         <span>Email</span>
         <input id="loginEmail" type="email" autocomplete="email" placeholder="tu@email.com">
       </label>
-      <button id="sendCodeButton" class="primary-button">Enviar email de acceso</button>
-
-      <div id="loginCodeStep" class="hidden">
-        <p class="muted">Pulsa el enlace del email en este dispositivo. Si el email incluye un código, también puedes escribirlo aquí:</p>
-        <label class="field">
-          <span>Código (si aparece en el email)</span>
-          <input id="loginCode" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="123456">
-        </label>
-        <button id="verifyCodeButton" class="primary-button">Entrar con código</button>
-        <button id="resendCodeButton" type="button" class="ghost-button">Enviar otro email</button>
-      </div>
+      <label class="field">
+        <span>Contraseña</span>
+        <input id="loginPassword" type="password" autocomplete="current-password" placeholder="mínimo 6 caracteres">
+      </label>
+      <button id="passwordLoginButton" class="primary-button">Entrar</button>
+      <button id="signupButton" type="button" class="secondary-button">Crear cuenta nueva</button>
+      <button id="sendCodeButton" type="button" class="ghost-button">He olvidado la contraseña</button>
     </div>
 
     <!-- Modo nube: elegir recetario o canjear invitación -->
@@ -351,6 +348,12 @@
     <div class="settings-group hidden" id="cloudGroup">
       <h3>Cuenta y recetario</h3>
       <p id="cloudAccountText" class="muted"></p>
+      <label class="field">
+        <span>Nueva contraseña</span>
+        <input id="newPasswordInput" type="password" autocomplete="new-password" placeholder="mínimo 6 caracteres">
+      </label>
+      <button id="changePasswordButton" type="button" class="secondary-button">Cambiar contraseña</button>
+      <p id="passwordChangeResult" class="muted hidden"></p>
       <button id="cloudInviteButton" type="button" class="secondary-button hidden">Crear código de invitación</button>
       <p id="cloudInviteResult" class="muted hidden"></p>
       <button id="cloudImportLocalButton" type="button" class="secondary-button">Importar recetas locales de este dispositivo</button>

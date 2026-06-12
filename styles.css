@@ -1003,12 +1003,10 @@ dialog::backdrop { background: rgba(42,31,23,0.35); backdrop-filter: blur(4px); 
 }
 
 #cloudLogin .primary-button,
+#cloudLogin .secondary-button,
+#cloudLogin .ghost-button,
 #cloudCookbooks .secondary-button,
 #cloudCookbooks .ghost-button {
   width: 100%;
   margin-top: 6px;
-}
-
-#loginCodeStep {
-  margin-top: 10px;
 }
