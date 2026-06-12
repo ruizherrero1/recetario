@@ -174,6 +174,17 @@ end;
 $$;
 
 -- ============================================================
+-- Privilegios de tabla
+-- ============================================================
+-- RLS solo filtra filas, no concede acceso: sin estos GRANTs el rol
+-- authenticated recibe "permission denied for table ..." en cualquier query.
+
+grant usage on schema public to authenticated;
+grant select, insert, update, delete
+  on public.cookbooks, public.cookbook_members, public.recipes, public.cookbook_invites
+  to authenticated;
+
+-- ============================================================
 -- Row Level Security
 -- ============================================================
 
