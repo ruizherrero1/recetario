@@ -187,7 +187,7 @@ alter table public.cookbook_invites enable row level security;
 -- solo el dueno renombra o borra.
 create policy "cookbooks_select_members" on public.cookbooks
   for select to authenticated
-  using (public.is_cookbook_member(id));
+  using (public.is_cookbook_member(id) or owner_id = auth.uid());
 
 create policy "cookbooks_insert_own" on public.cookbooks
   for insert to authenticated

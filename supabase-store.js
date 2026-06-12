@@ -91,16 +91,17 @@ export async function listCookbooks() {
   return data || [];
 }
 
+// Sin .select() tras el insert: el RETURNING exigiria pasar la policy de
+// SELECT (ser miembro), pero la membresia la crea un trigger AFTER INSERT
+// que aun no es visible en ese momento y Postgres rechaza la operacion.
+// Generamos el id en cliente para no necesitar leer la fila de vuelta.
 export async function createCookbook(name) {
   const client = await getClient();
   const session = await getSession();
-  const { data, error } = await client
-    .from("cookbooks")
-    .insert({ name, owner_id: session.user.id })
-    .select("id, name, owner_id")
-    .single();
+  const cookbook = { id: crypto.randomUUID(), name, owner_id: session.user.id };
+  const { error } = await client.from("cookbooks").insert(cookbook);
   if (error) throw error;
-  return data;
+  return cookbook;
 }
 
 export async function redeemInvite(code) {
