@@ -172,6 +172,17 @@
     <!-- ─── ADD / EDIT VIEW ────────────────────────────────── -->
     <section id="addView" class="view">
 
+      <!-- Importar desde un enlace: siempre visible, sin cambiar de pestaña -->
+      <div id="linkImportBox" class="link-import-box">
+        <span class="link-import-title">⚡ Importar desde un enlace</span>
+        <p class="muted">Pega la dirección de una web de recetas y rellenamos la ficha por ti (título, ingredientes, pasos y foto).</p>
+        <div class="link-import-row">
+          <input id="recipeUrl" type="url" inputmode="url" autocomplete="off" placeholder="https://www.recetasderechupete.com/…">
+          <button id="importLinkButton" type="button" class="primary-button">Importar</button>
+        </div>
+        <p id="linkStatus" class="message"></p>
+      </div>
+
       <div class="mode-tabs" role="tablist" aria-label="Método de entrada">
         <button class="mode-tab active" data-mode="manual">Manual</button>
         <button class="mode-tab" data-mode="import">JSON</button>

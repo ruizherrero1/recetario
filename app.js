@@ -1305,6 +1305,10 @@ async function runOcr() {
   }
 }
 
+// El proxy de ramonruizherrero.com lee la web en servidor (sin limites CORS),
+// extrae el schema.org/Recipe y devuelve la receta normalizada con la foto.
+const RECIPE_IMPORT_PROXY = "https://www.ramonruizherrero.com/api/recetas/import";
+
 async function importFromLink() {
   const url = normalizeUrlForOpen($("#recipeUrl")?.value || $("#sourceUrlInput")?.value);
   if (!url) {
@@ -1313,7 +1317,22 @@ async function importFromLink() {
   }
   $("#recipeUrl").value = url;
   if ($("#sourceUrlInput")) $("#sourceUrlInput").value = url;
-  $("#linkStatus").textContent = "Intentando leer la web...";
+  $("#linkStatus").textContent = "Leyendo la receta...";
+
+  try {
+    const response = await fetch(`${RECIPE_IMPORT_PROXY}?url=${encodeURIComponent(url)}`);
+    if (response.ok) {
+      const payload = await response.json();
+      if (payload?.recipe?.title || payload?.recipe?.ingredients?.length) {
+        fillForm({ ...payload.recipe, sourceUrl: url });
+        if (payload.recipe.imageData) await setPhotoFromDataUrl(payload.recipe.imageData);
+        $("#linkStatus").textContent = "Receta importada. Revisala antes de guardar.";
+        return;
+      }
+    }
+  } catch {}
+
+  // Fallback: fetch directo (solo funciona en webs con CORS abierto).
   try {
     const response = await fetch(url);
     const html = await response.text();
@@ -1327,8 +1346,19 @@ async function importFromLink() {
     fillFormFromText(doc.body?.innerText || "", url);
     $("#linkStatus").textContent = "He intentado convertir el contenido. Revisalo antes de guardar.";
   } catch {
-    $("#linkStatus").textContent = "Esa web no deja leer el contenido desde GitHub Pages. Pega el texto o sube una captura.";
+    $("#linkStatus").textContent = "No he podido leer esa web. Pega el texto de la receta o sube una captura.";
   }
+}
+
+// Convierte la foto importada (data URL) al mismo formato comprimido que las
+// fotos elegidas a mano, reutilizando compressImage.
+async function setPhotoFromDataUrl(dataUrl) {
+  try {
+    const blob = await (await fetch(dataUrl)).blob();
+    const compressed = await compressImage(blob, 1000, 0.82);
+    state.editingPhoto = compressed;
+    showPhotoPreview(compressed);
+  } catch {}
 }
 
 function extractSchemaRecipe(doc) {
