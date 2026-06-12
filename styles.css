@@ -1032,17 +1032,19 @@ dialog::backdrop { background: rgba(42,31,23,0.35); backdrop-filter: blur(4px); 
   font-size: 0.85rem;
 }
 
+/* En movil los botones son width:100% (media query de abajo): con wrap, el
+   boton salta a su propia linea; en escritorio queda en linea con el campo. */
 .link-import-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
 .link-import-row input {
-  flex: 1;
+  flex: 1 1 220px;
   min-width: 0;
 }
 
 .link-import-row .primary-button {
-  flex-shrink: 0;
   margin: 0;
 }
